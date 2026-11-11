@@ -361,6 +361,21 @@ namespace AltHub
 
         static readonly ConditionalWeakTable<Control, object> hooked = new ConditionalWeakTable<Control, object>();
 
+        [DllImport("dwmapi.dll")]
+        static extern int DwmSetWindowAttribute(IntPtr hwnd, int attr, ref int value, int size);
+
+        // Dark / light Windows title bar to match the app (Windows 10 2004+ / 11; ignored on older versions).
+        public static void TitleBar(Form f)
+        {
+            try
+            {
+                if (!f.IsHandleCreated) return;
+                int on = Theme.Dark ? 1 : 0;
+                if (DwmSetWindowAttribute(f.Handle, 20, ref on, 4) != 0) DwmSetWindowAttribute(f.Handle, 19, ref on, 4);
+            }
+            catch (Exception) { }
+        }
+
         static bool Wanted(Control c)
         {
             if (c is Form) return false;
@@ -388,42 +403,6 @@ namespace AltHub
         {
             try { SetWindowTheme(c.Handle, Theme.Dark ? "DarkMode_Explorer" : "Explorer", null); }
             catch (Exception) { }
-        }
-    }
-
-    // Small clickable Discord logo (the real Discord mark, embedded as a PNG).
-    public class DiscordIcon : System.Windows.Forms.Control
-    {
-        const string LogoB64 = "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";
-        static Image logo;
-        bool hover;
-
-        public DiscordIcon()
-        {
-            SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.UserPaint | ControlStyles.OptimizedDoubleBuffer | ControlStyles.ResizeRedraw | ControlStyles.SupportsTransparentBackColor, true);
-            Size = new Size(30, 24);
-            Cursor = System.Windows.Forms.Cursors.Hand;
-            BackColor = Color.Transparent;
-            if (logo == null)
-            {
-                try { logo = Image.FromStream(new System.IO.MemoryStream(Convert.FromBase64String(LogoB64))); }
-                catch (Exception) { }
-            }
-        }
-
-        protected override void OnMouseEnter(EventArgs e) { hover = true; Invalidate(); base.OnMouseEnter(e); }
-        protected override void OnMouseLeave(EventArgs e) { hover = false; Invalidate(); base.OnMouseLeave(e); }
-
-        protected override void OnPaint(System.Windows.Forms.PaintEventArgs e)
-        {
-            if (logo == null) return;
-            Graphics g = e.Graphics;
-            g.InterpolationMode = InterpolationMode.HighQualityBicubic;
-            g.SmoothingMode = SmoothingMode.AntiAlias;
-            int s = Math.Min(Width, Height) + (hover ? 2 : 0);   // the real Discord mark, square, fit to the control
-            int x = (Width - s) / 2;
-            int y = (Height - s) / 2;
-            g.DrawImage(logo, new Rectangle(x, y, s, s));
         }
     }
 }

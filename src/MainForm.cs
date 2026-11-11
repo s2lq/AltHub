@@ -60,11 +60,12 @@ namespace AltHub
             Theme.Set(Store.Settings.Theme != "Light");
             Text = "AltHub";
             Font = Theme.Base;
+            DoubleBuffered = true;
             AutoScaleDimensions = new SizeF(96F, 96F);
             AutoScaleMode = AutoScaleMode.Dpi;
             StartPosition = FormStartPosition.CenterScreen;
-            ClientSize = new Size(Math.Max(1180, Store.Settings.WinW), Math.Max(660, Store.Settings.WinH));
-            MinimumSize = new Size(1180, 660);
+            ClientSize = new Size(Math.Max(1240, Store.Settings.WinW), Math.Max(680, Store.Settings.WinH));
+            MinimumSize = new Size(1240, 680);
             try { Icon = Icon.ExtractAssociatedIcon(Application.ExecutablePath); } catch (Exception) { }
 
             BuildShell();
@@ -155,19 +156,16 @@ namespace AltHub
             };
             root.Controls.Add(topBar, 0, 0);
 
-            // ---- body: sidebar | (accounts | page), with a draggable splitter ----
+            // ---- body: accounts (far left) | tabs + page, with a draggable splitter ----
             TableLayoutPanel body = new TableLayoutPanel();
             body.Dock = DockStyle.Fill;
-            body.ColumnCount = 2;
+            body.ColumnCount = 1;
             body.RowCount = 1;
-            body.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 202F));   // sidebar
             body.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
             body.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
             body.Padding = new Padding(10);
             body.Margin = Padding.Empty;
             root.Controls.Add(body, 0, 1);
-
-            BuildSidebar(body);
 
             split = new SplitContainer();
             split.Size = new Size(900, 600);
@@ -176,8 +174,8 @@ namespace AltHub
                 split.Orientation = Orientation.Vertical;
                 split.SplitterWidth = 10;
                 split.FixedPanel = FixedPanel.Panel1;
-                split.Panel1MinSize = 300;
-                split.Panel2MinSize = 470;
+                split.Panel1MinSize = 320;
+                split.Panel2MinSize = 640;
             }
             catch (Exception ex) { Log.Error("split", ex); }
             split.BorderStyle = BorderStyle.None;
@@ -185,7 +183,7 @@ namespace AltHub
             split.Dock = DockStyle.Fill;
             split.Margin = Padding.Empty;
             split.SplitterMoved += delegate { LayoutCards(); };
-            body.Controls.Add(split, 1, 0);
+            body.Controls.Add(split, 0, 0);
 
             leftHost = new RoundPanel();
             leftHost.Dock = DockStyle.Fill;
@@ -196,8 +194,9 @@ namespace AltHub
             rightTable = new TableLayoutPanel();
             rightTable.Dock = DockStyle.Fill;
             rightTable.ColumnCount = 1;
-            rightTable.RowCount = 2;
+            rightTable.RowCount = 3;
             rightTable.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
+            rightTable.RowStyles.Add(new RowStyle(SizeType.Absolute, 52F));     // tabs
             rightTable.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));     // page
             rightTable.RowStyles.Add(new RowStyle(SizeType.Absolute, 34F));     // log (collapsed by default)
             rightTable.Margin = Padding.Empty;
@@ -208,7 +207,8 @@ namespace AltHub
             pageHost.Tag = "card";
             pageHost.Padding = new Padding(6);
             pageHost.Margin = Padding.Empty;
-            rightTable.Controls.Add(pageHost, 0, 0);
+            BuildTabs(rightTable);
+            rightTable.Controls.Add(pageHost, 0, 1);
 
             // ---- collapsible activity log (closed by default to keep the screen calm) ----
             logHost = new RoundPanel();
@@ -235,45 +235,44 @@ namespace AltHub
             logHeader.Click += delegate { ToggleLog(); };
             Ui.Tips.SetToolTip(logHeader, "Everything the app does is written here. Click to open or close it.");
             logHost.Controls.Add(logHeader);
-            rightTable.Controls.Add(logHost, 0, 1);
+            rightTable.Controls.Add(logHost, 0, 2);
         }
 
-        // Left navigation sidebar. Main pages on top, Settings / Help / Macro pinned at the bottom
-        // so they are always in the same place and easy to find.
-        void BuildSidebar(TableLayoutPanel body)
+        // Tab strip above the page (the accounts list owns the whole left side). It wraps onto a second line
+        // when the window is narrow, so no tab is ever cut off.
+        void BuildTabs(TableLayoutPanel host)
         {
-            RoundPanel side = new RoundPanel();
-            side.Dock = DockStyle.Fill;
-            side.Tag = "card";
-            side.Padding = new Padding(11, 12, 11, 12);
-            side.Margin = new Padding(0, 0, 10, 0);
-            body.Controls.Add(side, 0, 0);
+            RoundPanel bar = new RoundPanel();
+            bar.Dock = DockStyle.Fill;
+            bar.Tag = "card";
+            bar.Padding = new Padding(8, 8, 8, 2);
+            bar.Margin = new Padding(0, 0, 0, 10);
 
-            // bottom group first, so Dock=Bottom keeps it pinned under the top group
-            FlowLayoutPanel bottom = NewNavFlow();
-            bottom.Dock = DockStyle.Bottom;
-            Panel sep = new Panel();
-            sep.Tag = "line";
-            sep.Height = 1;
-            sep.Width = 178;
-            sep.Margin = new Padding(1, 6, 1, 8);
-            bottom.Controls.Add(sep);
-            bottom.Controls.Add(NavBtn("Settings", Lang.T("⚙  Settings"), false, "Open all options and toggles. Multi-instance, performance, alerts, startup and more."));
-            bottom.Controls.Add(NavBtn("Help", Lang.T("❓  Help"), false, "Guides, FAQ and troubleshooting."));
-            bottom.Controls.Add(NavBtn("Macro", Lang.T("\U0001F3AC  Macro"), true, "Record and replay mouse + keyboard (like TinyTask) in its own window."));
+            FlowLayoutPanel f = NewNavFlow();
+            f.FlowDirection = FlowDirection.LeftToRight;
+            f.WrapContents = true;
+            f.AutoSize = false;
+            f.Dock = DockStyle.Fill;
+            f.Controls.Add(NavBtn("Home", Lang.T("\U0001F3E0  Home"), false, null));
+            f.Controls.Add(NavBtn("Launch", Lang.T("\U0001F680  Launch"), false, null));
+            f.Controls.Add(NavBtn("Servers", Lang.T("\U0001F310  Servers"), false, null));
+            f.Controls.Add(NavBtn("Layout", Lang.T("\U0001FA9F  Layout"), false, null));
+            f.Controls.Add(NavBtn("Monitor", Lang.T("\U0001F4CA  Monitor"), false, null));
+            f.Controls.Add(NavBtn("Presets", Lang.T("\U0001F4BE  Presets"), false, null));
+            f.Controls.Add(NavBtn("Perf", Lang.T("⚡  Perf"), false, null));
+            f.Controls.Add(NavBtn("Macro", Lang.T("\U0001F3AC  Macro"), true, "Record and replay mouse + keyboard (like TinyTask) in its own window."));
+            f.Controls.Add(NavBtn("Help", Lang.T("❓  Help"), false, "Guides, FAQ and troubleshooting."));
+            f.Controls.Add(NavBtn("Settings", Lang.T("⚙  Settings"), false, "Open all options and toggles. Multi-instance, performance, alerts, startup and more."));
+            bar.Controls.Add(f);
+            host.Controls.Add(bar, 0, 0);
 
-            FlowLayoutPanel top = NewNavFlow();
-            top.Dock = DockStyle.Top;
-            top.Controls.Add(NavBtn("Home", Lang.T("\U0001F3E0  Home"), false, null));
-            top.Controls.Add(NavBtn("Launch", Lang.T("\U0001F680  Launch"), false, null));
-            top.Controls.Add(NavBtn("Servers", Lang.T("\U0001F310  Servers"), false, null));
-            top.Controls.Add(NavBtn("Layout", Lang.T("\U0001FA9F  Layout"), false, null));
-            top.Controls.Add(NavBtn("Monitor", Lang.T("\U0001F4CA  Monitor"), false, null));
-            top.Controls.Add(NavBtn("Presets", Lang.T("\U0001F4BE  Presets"), false, null));
-            top.Controls.Add(NavBtn("Perf", Lang.T("⚡  Perf"), false, null));
-
-            side.Controls.Add(bottom);
-            side.Controls.Add(top);
+            // one row when everything fits, two rows when it does not
+            bar.Resize += delegate
+            {
+                int w = Math.Max(100, bar.ClientSize.Width - bar.Padding.Horizontal);
+                int h = f.GetPreferredSize(new Size(w, 0)).Height;
+                host.RowStyles[0].Height = Math.Max(48, h + bar.Padding.Vertical + 8 + 2);
+            };
         }
 
         FlowLayoutPanel NewNavFlow()
@@ -290,11 +289,10 @@ namespace AltHub
 
         RoundButton NavBtn(string key, string label, bool macro, string tip)
         {
-            RoundButton b = Ui.Btn(label, 178, null, "nav");
-            b.Width = 178;
-            b.Height = 40;
-            b.LeftAlign = true;
-            b.Margin = new Padding(0, 2, 0, 2);
+            RoundButton b = Ui.Btn(label, 70, null, "nav");
+            b.FitText(70);
+            b.Height = 32;
+            b.Margin = new Padding(0, 0, 6, 6);
             b.Click += delegate { if (macro) OpenMacro(); else ShowPage(key); };
             if (!string.IsNullOrEmpty(tip)) Ui.Tips.SetToolTip(b, tip);
             navButtons[key] = b;
@@ -306,7 +304,7 @@ namespace AltHub
             logOpen = !logOpen;
             logBox.Visible = logOpen;
             logHeader.Text = (logOpen ? "▾" : "▸") + "  Activity log";
-            if (rightTable != null) rightTable.RowStyles[1].Height = logOpen ? 190F : 34F;
+            if (rightTable != null) rightTable.RowStyles[2].Height = logOpen ? 190F : 34F;
         }
 
         Panel NewPage(string key)
@@ -320,7 +318,7 @@ namespace AltHub
             return p;
         }
 
-        // A calm welcome page (the sidebar's default), in the style of modern launchers.
+        // A calm welcome page (the first tab), in the style of modern launchers.
         void BuildHomePage()
         {
             Panel page = NewPage("Home");
@@ -404,9 +402,16 @@ namespace AltHub
             btnViewCards.Invalidate();
         }
 
+        protected override void OnHandleCreated(EventArgs e)
+        {
+            base.OnHandleCreated(e);
+            NativeTheme.TitleBar(this);
+        }
+
         void ApplyTheme()
         {
             Theme.Apply(this);
+            NativeTheme.TitleBar(this);
             if (accMenu != null) StyleMenus();
             StyleNav();
             StyleViewButtons();

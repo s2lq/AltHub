@@ -30,23 +30,23 @@ namespace AltHub
             Dark = dark;
             if (dark)
             {
-                Bg = Color.FromArgb(21, 23, 28);
-                Panel = Color.FromArgb(30, 33, 40);
-                Panel2 = Color.FromArgb(40, 44, 53);
-                Border = Color.FromArgb(60, 65, 78);
-                Text = Color.FromArgb(232, 235, 240);
-                Muted = Color.FromArgb(146, 153, 168);
-                Sel = Color.FromArgb(54, 62, 98);
+                Bg = Color.FromArgb(14, 16, 21);
+                Panel = Color.FromArgb(22, 25, 32);
+                Panel2 = Color.FromArgb(32, 36, 45);
+                Border = Color.FromArgb(45, 50, 62);
+                Text = Color.FromArgb(236, 238, 244);
+                Muted = Color.FromArgb(138, 146, 163);
+                Sel = Color.FromArgb(42, 50, 90);
             }
             else
             {
-                Bg = Color.FromArgb(238, 240, 245);
+                Bg = Color.FromArgb(242, 244, 249);
                 Panel = Color.White;
                 Panel2 = Color.FromArgb(246, 247, 250);
-                Border = Color.FromArgb(205, 210, 220);
+                Border = Color.FromArgb(222, 226, 235);
                 Text = Color.FromArgb(28, 31, 38);
-                Muted = Color.FromArgb(98, 106, 124);
-                Sel = Color.FromArgb(212, 221, 255);
+                Muted = Color.FromArgb(102, 111, 130);
+                Sel = Color.FromArgb(224, 230, 255);
             }
         }
 
@@ -217,8 +217,10 @@ namespace AltHub
 
         static void DrawSub(object sender, DrawListViewSubItemEventArgs e)
         {
-            Color bg = e.Item.Selected ? Theme.Sel : (e.ItemIndex % 2 == 0 ? Theme.Panel2 : Theme.Panel);
-            using (SolidBrush b = new SolidBrush(bg)) e.Graphics.FillRectangle(b, e.Bounds);
+            // clean rows: no zebra stripes, a faint hairline between rows, accent tint on the selection
+            Color bg = e.Item.Selected ? Theme.Sel : Theme.Panel;
+            using (SolidBrush br = new SolidBrush(bg)) e.Graphics.FillRectangle(br, e.Bounds);
+            using (Pen hp = new Pen(Tint.Mix(Theme.Panel, Theme.Border, 0.6f))) e.Graphics.DrawLine(hp, e.Bounds.Left, e.Bounds.Bottom - 1, e.Bounds.Right, e.Bounds.Bottom - 1);
             TextRenderer.DrawText(e.Graphics, e.SubItem.Text, Theme.Base, Rectangle.Inflate(e.Bounds, -6, 0), e.Item.ForeColor,
                 TextFormatFlags.VerticalCenter | TextFormatFlags.Left | TextFormatFlags.EndEllipsis | TextFormatFlags.NoPrefix);
         }
