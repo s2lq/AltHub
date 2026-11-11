@@ -44,7 +44,8 @@ namespace AltHub
 
             Store.Init();
             Lang.Init();
-            Theme.Set(Store.Settings.Theme != "Light");
+            Theme.SetAccent(Store.Settings.AccentHex);
+            Theme.Set(Theme.ResolveDark(Store.Settings.Theme));
             if (!Unlock()) return;
 
             bool minimized = Array.IndexOf(args, "--minimized") >= 0;

@@ -18,6 +18,7 @@ namespace AltHub
         public static string BackupDir;
         public static AppSettings Settings = new AppSettings();
         public static List<Account> Accounts = new List<Account>();
+        public static List<PrivateServer> Servers = new List<PrivateServer>();
         public static string Password;            // null = DPAPI mode
         public static bool Loaded;                // never overwrite the file until it loaded successfully
         static readonly byte[] Entropy = Encoding.UTF8.GetBytes("RobloxMultiHub.v1");
@@ -101,6 +102,7 @@ namespace AltHub
                 if (!File.Exists(AccountsPath))
                 {
                     Accounts = new List<Account>();
+                    Servers = new List<PrivateServer>();
                     Password = password;
                     Loaded = true;
                     return null;
@@ -109,6 +111,8 @@ namespace AltHub
                 string json = Decrypt(raw, password);
                 AccountFile f = Json.From<AccountFile>(json);
                 Accounts = (f != null && f.Accounts != null) ? f.Accounts : new List<Account>();
+                Servers = (f != null && f.Servers != null) ? f.Servers : new List<PrivateServer>();
+                MigratePrivate();
                 Password = password;
                 Loaded = true;
                 Backup();
@@ -131,6 +135,7 @@ namespace AltHub
             try { if (File.Exists(AccountsPath)) File.Copy(AccountsPath, AccountsPath + ".old", true); }
             catch (Exception) { }
             Accounts = new List<Account>();
+            Servers = new List<PrivateServer>();
             Password = null;
             Loaded = true;
             SaveAccounts();
@@ -143,6 +148,7 @@ namespace AltHub
             {
                 AccountFile f = new AccountFile();
                 f.Accounts = Accounts;
+                f.Servers = Servers;
                 byte[] enc = Encrypt(Encoding.UTF8.GetBytes(Json.To(f)), Password);
                 AtomicWrite(AccountsPath, enc);
             }
@@ -278,6 +284,10 @@ namespace AltHub
             throw new CryptographicException("unknown format");
         }
 
+        // Password-protected export / import (the .althub backup file). The password is required: the file holds cookies.
+        public static byte[] Pack(string json, string password) { return Encrypt(Encoding.UTF8.GetBytes(json), password); }
+        public static string Unpack(byte[] raw, string password) { return Decrypt(raw, password); }
+
         // ---- helpers used by the UI ----
         public static void RenumberOrder()
         {
@@ -291,6 +301,42 @@ namespace AltHub
                 if (!string.IsNullOrEmpty(a.Group) && !g.Contains(a.Group)) g.Add(a.Group);
             g.Sort(StringComparer.OrdinalIgnoreCase);
             return g;
+        }
+
+        public static PrivateServer FindServer(string id)
+        {
+            if (string.IsNullOrEmpty(id)) return null;
+            return Servers.FirstOrDefault(s => s.Id == id);
+        }
+
+        public static Account FindAccount(string id)
+        {
+            if (string.IsNullOrEmpty(id)) return null;
+            return Accounts.FirstOrDefault(a => a.Id == id);
+        }
+
+        // The old single private server of an account becomes an entry of the private server list.
+        static void MigratePrivate()
+        {
+            int n = 0;
+            foreach (Account a in Accounts)
+            {
+                if (a.PrivatePlaceId <= 0 || string.IsNullOrEmpty(a.PrivateCode)) continue;
+                PrivateServer s = Servers.FirstOrDefault(x => x.PlaceId == a.PrivatePlaceId && x.Code == a.PrivateCode);
+                if (s == null)
+                {
+                    s = new PrivateServer();
+                    s.Name = "Server " + (Servers.Count + 1);
+                    s.Link = a.PrivateLink;
+                    s.PlaceId = a.PrivatePlaceId;
+                    s.Code = a.PrivateCode;
+                    s.OwnerAccountId = a.Id;
+                    Servers.Add(s);
+                    n++;
+                }
+                if (string.IsNullOrEmpty(a.PrivateServerId)) a.PrivateServerId = s.Id;
+                a.PrivateLink = ""; a.PrivatePlaceId = 0; a.PrivateCode = "";
+            }
         }
 
         public static Account FindByCookie(string cookie)

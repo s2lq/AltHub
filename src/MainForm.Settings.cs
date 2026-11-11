@@ -165,9 +165,9 @@ namespace AltHub
                 Ui.Btn("Open data folder", 150, delegate { OpenDataFolder(); }, ""));
 
             p.Section("Appearance & startup");
-            cbTheme = Ui.Cmb(140, "Dark", "Light");
-            cbTheme.SelectedIndex = S.Theme == "Light" ? 1 : 0;
-            p.Opt("Dark or light look.", "Switches the whole window immediately.", Ui.Fld("Theme", 120), cbTheme);
+            cbTheme = Ui.Cmb(170, "Dark", "Light", "Follow Windows");
+            cbTheme.SelectedIndex = S.Theme == "Light" ? 1 : (S.Theme == "System" ? 2 : 0);
+            p.Opt("Dark, light, or the same as Windows.", "Switches the whole window immediately. 'Follow Windows' changes with the Windows app mode setting (Settings > Personalization > Colors).", Ui.Fld("Theme", 120), cbTheme);
             List<string[]> langs = Lang.Available();
             string[] langNames = new string[langs.Count];
             for (int i = 0; i < langs.Count; i++) langNames[i] = langs[i][1];
@@ -182,6 +182,8 @@ namespace AltHub
             p.Opt("Starts this app when you log in to Windows.",
                 "Useful with multi-instance: if this app starts before Roblox does, it always wins the lock. Adds a normal Windows startup entry that you can remove here again.",
                 chkStartup);
+
+            BuildSystemSettings(p);
 
             p.Section("Updates");
             chkCheckUpdates = Ui.Chk("Check for a new version when AltHub starts", S.CheckUpdates, null);
@@ -294,6 +296,8 @@ namespace AltHub
                 tbDiscordAppId.Text = S.DiscordAppId;
             }
             UpdateStorageLabel();
+            SyncSystemControls();
+            if (cbTheme != null) cbTheme.SelectedIndex = S.Theme == "Light" ? 1 : (S.Theme == "System" ? 2 : 0);
             loadingSettings = was;
             if (S.MultiInstance) MultiInstance.Start();
         }
@@ -382,10 +386,9 @@ namespace AltHub
         void OnThemeChanged()
         {
             if (loadingSettings) return;
-            bool light = cbTheme.SelectedIndex == 1;
-            Store.Settings.Theme = light ? "Light" : "Dark";
+            Store.Settings.Theme = cbTheme.SelectedIndex == 1 ? "Light" : (cbTheme.SelectedIndex == 2 ? "System" : "Dark");
             Store.SaveSettings();
-            Theme.Set(!light);
+            Theme.Set(Theme.ResolveDark(Store.Settings.Theme));
             ApplyTheme();
             OnAccountSelectionChanged();
             UpdateMultiChip();

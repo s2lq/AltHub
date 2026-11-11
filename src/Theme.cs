@@ -26,6 +26,33 @@ namespace AltHub
 
         static Theme() { Set(true); }
 
+        // "Dark" / "Light" / "System" (follows the Windows app mode) -> dark?
+        public static bool ResolveDark(string setting)
+        {
+            if (setting == "Light") return false;
+            if (setting != "System") return true;
+            try
+            {
+                object v = Microsoft.Win32.Registry.GetValue(@"HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize", "AppsUseLightTheme", 1);
+                if (v is int) return (int)v == 0;
+            }
+            catch (Exception) { }
+            return true;
+        }
+
+        // "#RRGGBB" or "" (default indigo)
+        public static void SetAccent(string hex)
+        {
+            Color c = Color.FromArgb(99, 102, 241);
+            try
+            {
+                string h = (hex ?? "").Trim().TrimStart('#');
+                if (h.Length == 6) c = Color.FromArgb(Convert.ToInt32(h.Substring(0, 2), 16), Convert.ToInt32(h.Substring(2, 2), 16), Convert.ToInt32(h.Substring(4, 2), 16));
+            }
+            catch (Exception) { }
+            Accent = c;
+        }
+
         public static void Set(bool dark)
         {
             Dark = dark;

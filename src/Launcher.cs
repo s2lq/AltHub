@@ -596,6 +596,7 @@ namespace AltHub
                         if (!li.LockedAlerted && Store.Settings.WebhookLocked)
                         {
                             Webhook.Send("Account locked", AppState.Name(a) + " — Roblox returned HTTP 403 (locked / blocked). Unlock it on roblox.com.", Webhook.Red);
+                            Notify.Toast("Account locked", AppState.Name(a) + " looks locked or blocked by Roblox (HTTP 403).", System.Windows.Forms.ToolTipIcon.Error);
                             li.LockedAlerted = true;
                         }
                         li.Locked = true;
@@ -744,13 +745,66 @@ namespace AltHub
             }
         }
 
+        // ---------- rejoin the same server ----------
+        class LastServer { public long PlaceId; public string JobId = ""; public int Tries; }
+        static readonly Dictionary<string, LastServer> LastServers = new Dictionary<string, LastServer>();
+
+        // Remembers which server every running account is in (from Roblox's presence), so it can be rejoined.
+        static async Task TrackServers()
+        {
+            List<Instance> alive = Instances.Where(i => !i.UserClosed && IsAlive(i.Pid) && i.Account.UserId > 0 && !string.IsNullOrEmpty(i.Account.Cookie)
+                && (i.Spec.Kind == "Game" || i.Spec.Kind == "Job")).ToList();
+            if (alive.Count == 0) return;
+            List<long> ids = alive.Select(i => i.Account.UserId).Distinct().ToList();
+            Dictionary<long, PresenceInfo> pr = await Api.Presence(alive[0].Account.Cookie, ids);
+            foreach (Instance i in alive)
+            {
+                PresenceInfo pi;
+                if (!pr.TryGetValue(i.Account.UserId, out pi)) continue;
+                if (pi.Type != 2 || pi.PlaceId <= 0 || !Util.LooksLikeGuid(pi.GameId)) continue;
+                LastServer ls;
+                if (!LastServers.TryGetValue(i.Account.Id, out ls)) { ls = new LastServer(); LastServers[i.Account.Id] = ls; }
+                if (ls.JobId == pi.GameId) ls.Tries = 0;         // it worked: the rejoin got back into the same server
+                ls.PlaceId = pi.PlaceId;
+                ls.JobId = pi.GameId;
+            }
+        }
+
+        // The spec to relaunch with: the server the account was in, unless that already failed twice.
+        static LaunchSpec RejoinSpec(Account a, LaunchSpec spec, Action<string> log)
+        {
+            if (!Store.Settings.RejoinSameServer || (spec.Kind != "Game" && spec.Kind != "Job")) return spec;
+            LastServer ls;
+            if (!LastServers.TryGetValue(a.Id, out ls) || ls.PlaceId <= 0 || string.IsNullOrEmpty(ls.JobId)) return spec;
+            LaunchSpec s = spec.Copy();
+            if (ls.Tries >= 2)
+            {
+                LastServers.Remove(a.Id);
+                s.Kind = "Game"; s.JobId = "";
+                log("Watcher: " + AppState.Name(a) + " could not get back into its old server - joining any server of the game instead.");
+                return s;
+            }
+            ls.Tries++;
+            s.Kind = "Job"; s.PlaceId = ls.PlaceId; s.JobId = ls.JobId;
+            log("Watcher: " + AppState.Name(a) + " is rejoining the same server...");
+            return s;
+        }
+
         // ---------- watcher: relaunch accounts whose Roblox window disappeared ----------
         public static async Task WatcherTick(Action<string> log)
         {
+            if (Store.Settings.RejoinSameServer && Store.Settings.AutoRelaunch)
+            {
+                try { await TrackServers(); } catch (Exception ex) { Log.Write("TrackServers: " + ex.Message); }
+            }
+
             // Crash/disconnect alerts go out whether or not auto-relaunch is on.
-            if (Store.Settings.WebhookCrash)
+            if (Store.Settings.WebhookCrash || Store.Settings.Toasts)
                 foreach (Instance g in Instances.Where(i => !i.UserClosed && !IsAlive(i.Pid)).ToList())
-                    Webhook.Send("Client closed", AppState.Name(g.Account) + " — its Roblox window disappeared unexpectedly.", Webhook.Red);
+                {
+                    if (Store.Settings.WebhookCrash) Webhook.Send("Client closed", AppState.Name(g.Account) + " — its Roblox window disappeared unexpectedly.", Webhook.Red);
+                    Notify.Toast("Roblox closed", AppState.Name(g.Account) + " - its Roblox window disappeared unexpectedly.", System.Windows.Forms.ToolTipIcon.Warning);
+                }
 
             if (!Store.Settings.AutoRelaunch)
             {
@@ -776,6 +830,7 @@ namespace AltHub
                     if (i.Strikes >= 2)
                     {
                         log("Watcher: " + AppState.Name(i.Account) + " is not in a game anymore - closing and relaunching.");
+                        Notify.Toast("Kicked or disconnected", AppState.Name(i.Account) + " left the game - bringing it back.", System.Windows.Forms.ToolTipIcon.Warning);
                         KillPid(i.Pid);
                         dead.Add(i);
                     }
@@ -794,10 +849,11 @@ namespace AltHub
                     continue;
                 }
                 log("Watcher: relaunching " + AppState.Name(d.Account) + "...");
-                await LaunchAsync(d.Account, d.Spec, log);
+                await LaunchAsync(d.Account, RejoinSpec(d.Account, d.Spec, log), log);
                 bool gaveUp = BreakerRecord(d.Account);
                 if (Store.Settings.WebhookRelaunch)
                     Webhook.Send("Client relaunched", AppState.Name(d.Account) + " was brought back by the watcher.", Webhook.Yellow);
+                Notify.Toast("Account back", AppState.Name(d.Account) + " was relaunched by the watcher.", System.Windows.Forms.ToolTipIcon.Info);
                 if (gaveUp)
                 {
                     log("Watcher: " + AppState.Name(d.Account) + " has crashed too often - the crash breaker will stop relaunching it for " + Math.Max(1, Store.Settings.CrashBreakerCooldownMin) + " min.");

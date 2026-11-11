@@ -34,7 +34,13 @@ Useful for grinding, trading, holding items on alt accounts, or just keeping all
 
 **🚀 Launching**
 - Join a game, a specific server (Job ID), a private server, or follow a player
-- **Private server per account** - save a different private server link on each account; every account remembers its own and joins it on launch (Launch page, or *Edit account*)
+- **Private servers tab** - save named private servers (Grind, Trading ...) with their owner, give each account its own (drop-down on every account card), send a whole group or tag into one server with one click, and check that the links still work
+- **Tags, colours, notes and Robux** per account, with bulk actions on a tag
+- **Move to a new PC** - export / import accounts and per-account settings as one password-protected `.althub` file
+- **Per-account proxy** for the app's web requests
+- **Rejoin the same server** after a kick, disconnect or crash
+- **Tray icon**, Windows notifications and global Launch all / Stop all hotkeys
+- **Follow Windows light / dark** and an accent colour picker
 - Search a game by name, pick a server by players / ping / FPS, or random
 - Launches like Roblox Account Manager — no "human verification" on join
 - Delay between accounts, max-windows limit, auto-close previous window

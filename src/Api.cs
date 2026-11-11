@@ -75,6 +75,48 @@ namespace AltHub
     public static class Api
     {
         static readonly HttpClient Http;
+        static readonly Dictionary<string, HttpClient> proxyClients = new Dictionary<string, HttpClient>();
+
+        // The HttpClient for an account's requests: its own proxy when one is set, otherwise the shared direct client.
+        // (Only this app's web requests go through it - Roblox's game connection itself cannot be proxied from here.)
+        static HttpClient ClientFor(string cookie)
+        {
+            if (string.IsNullOrEmpty(cookie)) return Http;
+            Account a = Store.FindByCookie(cookie);
+            if (a == null || string.IsNullOrEmpty(a.Proxy) || a.Proxy.Trim().Length == 0) return Http;
+            string key = a.Proxy.Trim();
+            lock (proxyClients)
+            {
+                HttpClient c;
+                if (proxyClients.TryGetValue(key, out c)) return c;
+                try
+                {
+                    Uri u = new Uri(key.IndexOf("://", StringComparison.Ordinal) > 0 ? key : "http://" + key);
+                    WebProxy wp = new WebProxy(u.Host, u.Port);
+                    if (!string.IsNullOrEmpty(u.UserInfo))
+                    {
+                        string[] up = u.UserInfo.Split(new char[] { ':' }, 2);
+                        wp.Credentials = new NetworkCredential(Uri.UnescapeDataString(up[0]), up.Length > 1 ? Uri.UnescapeDataString(up[1]) : "");
+                    }
+                    HttpClientHandler h = new HttpClientHandler();
+                    h.UseCookies = false;
+                    h.Proxy = wp;
+                    h.UseProxy = true;
+                    h.AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate;
+                    c = new HttpClient(h);
+                    c.Timeout = TimeSpan.FromSeconds(25);
+                    c.DefaultRequestHeaders.UserAgent.ParseAdd("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36");
+                    proxyClients[key] = c;
+                    return c;
+                }
+                catch (Exception ex)
+                {
+                    Log.Write("Bad proxy '" + key + "': " + ex.Message + " - using a direct connection.");
+                    proxyClients[key] = Http;
+                    return Http;
+                }
+            }
+        }
 
         static Api()
         {
@@ -98,7 +140,7 @@ namespace AltHub
                 if (extra != null)
                     foreach (KeyValuePair<string, string> kv in extra) if (!string.IsNullOrEmpty(kv.Value)) req.Headers.TryAddWithoutValidation(kv.Key, kv.Value);
                 if (jsonBody != null) req.Content = new StringContent(jsonBody, Encoding.UTF8, "application/json");
-                using (HttpResponseMessage resp = await Http.SendAsync(req))
+                using (HttpResponseMessage resp = await ClientFor(cookie).SendAsync(req))
                 {
                     ApiResult r = new ApiResult();
                     r.Status = resp.StatusCode;
@@ -396,10 +438,73 @@ namespace AltHub
                 s.Kind = "Private";
                 s.PlaceId = Json.Long(d, "placeId");
                 s.LinkCode = Json.Str(d, "linkCode");
+                s.ServerId = Json.Long(d, "privateServerId");
                 if (s.PlaceId > 0 && s.LinkCode.Length > 0) return s;
             }
             catch (Exception ex) { Log.Write("Share link resolve failed: " + ex.Message); }
             return null;
+        }
+
+        // Name and owner of a private server, straight from Roblox (needs the server id and a cookie that may see it).
+        public static async Task<string[]> VipServer(long serverId, string cookie)
+        {
+            try
+            {
+                ApiResult r = await Req(HttpMethod.Get, "https://games.roblox.com/v1/vip-servers/" + serverId, cookie, null, null, null);
+                if (!r.Ok) return null;
+                object j = Json.Parse(r.Body);
+                object owner = Json.Get(j, "owner");
+                string ownerName = Json.Str(owner, "name");
+                if (string.IsNullOrEmpty(ownerName)) ownerName = Json.Str(owner, "displayName");
+                return new string[] { Json.Str(j, "name"), ownerName };
+            }
+            catch (Exception) { return null; }
+        }
+
+        // Asks Roblox whether this account can join the private server right now. Returns {"ok"|"bad"|"unknown", text}.
+        public static async Task<string[]> CheckPrivate(long placeId, string code, string cookie)
+        {
+            try
+            {
+                Dictionary<string, object> body = new Dictionary<string, object>();
+                body["placeId"] = placeId;
+                body["linkCode"] = code;
+                body["gameJoinAttemptId"] = Guid.NewGuid().ToString();
+                Dictionary<string, string> h = new Dictionary<string, string>();
+                h["Referer"] = "https://www.roblox.com/games/" + placeId;
+                ApiResult r = await PostCsrf("https://gamejoin.roblox.com/v1/join-private-game", cookie, Json.To(body), h);
+                if (r.Status == HttpStatusCode.Unauthorized) return new string[] { "bad", "This account's cookie is expired" };
+                if ((int)r.Status == 429) return new string[] { "unknown", "Rate limited by Roblox - try again in a minute" };
+                if (!r.Ok && string.IsNullOrEmpty(r.Body)) return new string[] { "unknown", "HTTP " + (int)r.Status };
+                object j = Json.Parse(r.Body);
+                int st = (int)Json.Long(j, "status");
+                string msg = Json.Str(j, "message");
+                switch (st)
+                {
+                    case 2: return new string[] { "ok", "Joinable" };
+                    case 0:
+                    case 1: return new string[] { "ok", "Joinable (server is starting)" };
+                    case 6: return new string[] { "ok", "Joinable, but the server is full" };
+                    case 12: return new string[] { "bad", string.IsNullOrEmpty(msg) ? "Not allowed - this account is not invited, or the link is invalid" : msg };
+                    case 11: return new string[] { "bad", string.IsNullOrEmpty(msg) ? "This account is restricted from joining" : msg };
+                    case 3: return new string[] { "bad", "The game is disabled" };
+                    case 5: return new string[] { "bad", "The server has ended" };
+                    default: return new string[] { "unknown", "Roblox answered status " + st + (string.IsNullOrEmpty(msg) ? "" : ": " + msg) };
+                }
+            }
+            catch (Exception ex) { return new string[] { "unknown", ex.Message }; }
+        }
+
+        // Robux balance of an account, or -1 when it cannot be loaded.
+        public static async Task<long> Robux(Account a)
+        {
+            try
+            {
+                ApiResult e = await Req(HttpMethod.Get, "https://economy.roblox.com/v1/users/" + a.UserId + "/currency", a.Cookie, null, null, null);
+                if (e.Ok) return Json.Long(Json.Parse(e.Body), "robux");
+            }
+            catch (Exception) { }
+            return -1;
         }
 
         public static async Task<string> Details(Account a)
