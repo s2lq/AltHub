@@ -15,6 +15,7 @@ namespace AltHub
         public static string Dir;
         public static string SettingsPath;
         public static string AccountsPath;
+        public static string ServersPath;          // second copy of the private server list (older builds rewrite accounts.dat without it)
         public static string BackupDir;
         public static AppSettings Settings = new AppSettings();
         public static List<Account> Accounts = new List<Account>();
@@ -40,6 +41,7 @@ namespace AltHub
             BackupDir = Path.Combine(Dir, "Backups");
             SettingsPath = Path.Combine(Dir, "settings.json");
             AccountsPath = Path.Combine(Dir, "accounts.dat");
+            ServersPath = Path.Combine(Dir, "servers.dat");
             Log.Init(Dir);
             LoadSettings();
         }
@@ -112,6 +114,7 @@ namespace AltHub
                 AccountFile f = Json.From<AccountFile>(json);
                 Accounts = (f != null && f.Accounts != null) ? f.Accounts : new List<Account>();
                 Servers = (f != null && f.Servers != null) ? f.Servers : new List<PrivateServer>();
+                if (Servers.Count == 0) Servers = LoadServersCopy(password);      // an older build may have dropped them from accounts.dat
                 MigratePrivate();
                 Password = password;
                 Loaded = true;
@@ -151,8 +154,45 @@ namespace AltHub
                 f.Servers = Servers;
                 byte[] enc = Encrypt(Encoding.UTF8.GetBytes(Json.To(f)), Password);
                 AtomicWrite(AccountsPath, enc);
+                AccountFile sf = new AccountFile();
+                sf.Servers = Servers;
+                AtomicWrite(ServersPath, Encrypt(Encoding.UTF8.GetBytes(Json.To(sf)), Password));
             }
             catch (Exception ex) { Log.Error("SaveAccounts", ex); }
+        }
+
+        static List<PrivateServer> LoadServersCopy(string password)
+        {
+            try
+            {
+                if (!File.Exists(ServersPath)) return new List<PrivateServer>();
+                AccountFile sf = Json.From<AccountFile>(Decrypt(File.ReadAllBytes(ServersPath), password));
+                if (sf != null && sf.Servers != null) return sf.Servers;
+            }
+            catch (Exception ex) { Log.Write("servers.dat could not be read: " + ex.Message); }
+            return new List<PrivateServer>();
+        }
+
+        // Newest-first list of automatic backups (accounts_*.dat) in the backup folder.
+        public static List<string> ListBackups()
+        {
+            List<string> l = new List<string>();
+            try
+            {
+                if (Directory.Exists(BackupDir)) l.AddRange(Directory.GetFiles(BackupDir, "accounts_*.dat"));
+                l.Sort(StringComparer.OrdinalIgnoreCase);
+                l.Reverse();
+            }
+            catch (Exception) { }
+            return l;
+        }
+
+        // Puts a backup in place of accounts.dat (the current file is kept as accounts.dat.before-restore).
+        public static void RestoreBackup(string file)
+        {
+            if (File.Exists(AccountsPath)) File.Copy(AccountsPath, AccountsPath + ".before-restore", true);
+            File.Copy(file, AccountsPath, true);
+            try { if (File.Exists(ServersPath)) File.Delete(ServersPath); } catch (Exception) { }   // the restored file carries its own list
         }
 
         public static void Backup()
@@ -319,6 +359,26 @@ namespace AltHub
         static void MigratePrivate()
         {
             int n = 0;
+            // private server links that were pasted into an account's "Game" field become entries of the list too
+            foreach (Account a in Accounts)
+            {
+                long gp; string gc;
+                if (string.IsNullOrEmpty(a.PrivateServerId) && Api.ParseOldPrivate(a.GameLink, out gp, out gc))
+                {
+                    PrivateServer s = Servers.FirstOrDefault(x => x.PlaceId == gp && x.Code == gc);
+                    if (s == null)
+                    {
+                        s = new PrivateServer();
+                        s.Name = "Server " + (Servers.Count + 1);
+                        s.Link = a.GameLink;
+                        s.PlaceId = gp;
+                        s.Code = gc;
+                        s.OwnerAccountId = a.Id;
+                        Servers.Add(s);
+                    }
+                    a.PrivateServerId = s.Id;
+                }
+            }
             foreach (Account a in Accounts)
             {
                 if (a.PrivatePlaceId <= 0 || string.IsNullOrEmpty(a.PrivateCode)) continue;

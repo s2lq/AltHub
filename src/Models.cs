@@ -27,6 +27,7 @@ namespace AltHub
         public string Tags = "";            // comma separated tags, for bulk actions
         public string ColorName = "";       // "" = none, otherwise one of AccountColors.Names
         public string Proxy = "";           // optional proxy for this app's web requests for the account: host:port or http://user:pass@host:port
+        public bool Muted;                  // the Roblox sound of this account is muted (applied as soon as its window runs)
         public long Robux = -1;             // last known Robux balance, -1 = not loaded yet
         public long TrackerId;              // stable "browser tracker id" for this account
         public long LastUsedTicks;

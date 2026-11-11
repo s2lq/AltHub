@@ -21,3 +21,10 @@ Backups/
 *.user
 Thumbs.db
 desktop.ini
+
+# Backups / exports hold account logins - never commit them
+*.althub
+*.ROBLOSECURITY
+cookies*.txt
+accounts*.dat
+servers.dat

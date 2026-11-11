@@ -81,6 +81,20 @@ namespace AltHub
                             g.FillPath(b, ring);
                         }
                         break;
+                    case "mute":
+                    case "sound":
+                        g.FillPolygon(b, new PointF[] { new PointF(1.8f, 5.8f), new PointF(5, 5.8f), new PointF(9, 2.4f), new PointF(9, 13.6f), new PointF(5, 10.2f), new PointF(1.8f, 10.2f) });
+                        if (name == "mute")
+                        {
+                            g.DrawLine(p, 11.2f, 5.6f, 14.6f, 10.4f);
+                            g.DrawLine(p, 14.6f, 5.6f, 11.2f, 10.4f);
+                        }
+                        else
+                        {
+                            g.DrawArc(p, 8f, 5.2f, 4.4f, 5.6f, -60, 120);
+                            g.DrawArc(p, 7f, 3.2f, 7.6f, 9.6f, -60, 120);
+                        }
+                        break;
                     case "note":
                         using (GraphicsPath n = Round(new RectangleF(2.8f, 1.8f, 10.4f, 12.4f), 1.8f)) g.DrawPath(p, n);
                         g.DrawLine(p, 5.4f, 6f, 10.6f, 6f);

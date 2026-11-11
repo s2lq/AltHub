@@ -163,6 +163,9 @@ namespace AltHub
                 "A backup of your accounts is made every time the app starts (the last 10 are kept). 'Open data folder' shows where settings, log and backups are stored.",
                 Ui.Btn("Back up now", 120, delegate { Store.Backup(); AddLog("Backup saved in " + Store.BackupDir); }, ""),
                 Ui.Btn("Open data folder", 150, delegate { OpenDataFolder(); }, ""));
+            p.Opt("Something missing? Go back to an earlier backup.",
+                "Pick one of the automatic backups. Your current accounts file is kept next to it as accounts.dat.before-restore, and the app restarts with the backup loaded. Backups hold your accounts, their settings and your private server list.",
+                Ui.Btn("Restore a backup...", 180, delegate { RestoreBackupClick(); }, ""));
 
             p.Section("Appearance & startup");
             cbTheme = Ui.Cmb(170, "Dark", "Light", "Follow Windows");
@@ -423,6 +426,28 @@ namespace AltHub
                 }
             }
             catch (Exception ex) { AddLog("Could not change the startup entry: " + ex.Message); }
+        }
+
+        void RestoreBackupClick()
+        {
+            List<string> list = Store.ListBackups();
+            if (list.Count == 0) { AddLog("There are no backups yet (they are made every time the app starts)."); return; }
+            using (OpenFileDialog d = new OpenFileDialog())
+            {
+                d.Title = "Choose a backup to restore";
+                d.InitialDirectory = Store.BackupDir;
+                d.Filter = "Accounts backup (accounts_*.dat)|accounts_*.dat";
+                if (d.ShowDialog(this) != DialogResult.OK) return;
+                if (MessageBox.Show(this, "Restore\n" + System.IO.Path.GetFileName(d.FileName) + "\n\nYour current accounts are kept as accounts.dat.before-restore. AltHub restarts now.",
+                    "Restore a backup", MessageBoxButtons.OKCancel, MessageBoxIcon.Question) != DialogResult.OK) return;
+                try
+                {
+                    Store.RestoreBackup(d.FileName);
+                    quitting = true;
+                    Application.Restart();
+                }
+                catch (Exception ex) { Log.Error("Restore", ex); AddLog("Restore failed: " + ex.Message); }
+            }
         }
 
         void UpdateStorageLabel()

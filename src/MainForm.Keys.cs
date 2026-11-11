@@ -33,6 +33,7 @@ namespace AltHub
                 case Keys.Control | Keys.L: LaunchSelected(); return true;
                 case Keys.Control | Keys.Shift | Keys.L: LaunchAllListed(); return true;
                 case Keys.Control | Keys.Shift | Keys.S: StopAll(); return true;
+                case Keys.Control | Keys.Shift | Keys.M: ToggleMuteSelected(); return true;
                 case Keys.Control | Keys.N: AddByBrowser(); return true;
                 case Keys.Control | Keys.E:
                 case Keys.F2: EditSelected(); return true;

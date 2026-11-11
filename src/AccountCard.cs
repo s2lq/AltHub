@@ -222,6 +222,7 @@ namespace AltHub
         string privSig = "";
         bool settingPriv;
         bool hasNote;
+        bool muted;
         string[] tagArr = new string[0];
         string robuxText = "";
         Color stripe = Color.Empty;
@@ -325,6 +326,13 @@ namespace AltHub
             cap.Click += OnAnyClick;
             capP.Click += OnAnyClick;
             lblNote.Click += OnAnyClick;
+        }
+
+        public void SetMuted(bool m)
+        {
+            if (muted == m) return;
+            muted = m;
+            Invalidate();
         }
 
         // Tags, Robux, the note, the colour stripe and the private server drop-down.
@@ -446,6 +454,7 @@ namespace AltHub
                 TextRenderer.DrawText(g, t, Theme.Small, cr, Theme.Text, cf);
                 tx += w + 5;
             }
+            if (muted) Icons.Draw(g, "mute", new Rectangle(Width - 14 - 34 - 8 - pillW - 8 - 18, 19, 16, 16), Theme.Warn);
             if (hasNote) Icons.Draw(g, "note", new Rectangle(14, 104, 15, 15), Theme.Muted);
             if (rw > 0)
                 TextRenderer.DrawText(g, robuxText, Theme.Small, new Rectangle(Width - 14 - rw, 82, rw, 18), Theme.Muted,
