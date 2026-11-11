@@ -353,6 +353,119 @@ namespace AltHub
         }
     }
 
+    // Check box with a rounded box and a tick (the standard one is square and ignores the theme).
+    public class RoundCheck : CheckBox
+    {
+        bool hover;
+
+        public RoundCheck()
+        {
+            SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | ControlStyles.OptimizedDoubleBuffer | ControlStyles.ResizeRedraw, true);
+        }
+
+
+        public override Size GetPreferredSize(Size proposedSize)
+        {
+            Size t = TextRenderer.MeasureText(Text, Font, new Size(2000, 100), TextFormatFlags.NoPrefix | TextFormatFlags.SingleLine);
+            return new Size(25 + t.Width + 6, Math.Max(22, t.Height + 6));
+        }
+
+        protected override void OnMouseEnter(EventArgs e) { hover = true; Invalidate(); base.OnMouseEnter(e); }
+        protected override void OnMouseLeave(EventArgs e) { hover = false; Invalidate(); base.OnMouseLeave(e); }
+        protected override void OnCheckedChanged(EventArgs e) { Invalidate(); base.OnCheckedChanged(e); }
+        protected override void OnEnabledChanged(EventArgs e) { Invalidate(); base.OnEnabledChanged(e); }
+
+        protected override void OnPaint(PaintEventArgs e)
+        {
+            Graphics g = e.Graphics;
+            g.SmoothingMode = SmoothingMode.AntiAlias;
+            g.Clear(Parent != null ? Parent.BackColor : Theme.Panel);
+            Rectangle box = new Rectangle(1, (Height - 16) / 2, 16, 16);
+            Color edge = Checked ? Theme.Accent : (hover && Enabled ? Theme.Accent : Theme.Border);
+            using (GraphicsPath path = Shapes.Round(box, 5))
+            {
+                using (SolidBrush b = new SolidBrush(Checked ? (Enabled ? Theme.Accent : Theme.Border) : Theme.Panel2)) g.FillPath(b, path);
+                using (Pen pen = new Pen(edge)) g.DrawPath(pen, path);
+            }
+            if (Checked)
+                using (Pen tick = new Pen(Color.White, 2f))
+                    g.DrawLines(tick, new Point[] { new Point(box.Left + 4, box.Top + 8), new Point(box.Left + 7, box.Top + 11), new Point(box.Left + 12, box.Top + 5) });
+            TextRenderer.DrawText(g, Text, Font, new Rectangle(25, 0, Math.Max(1, Width - 25), Height), Enabled ? ForeColor : Theme.Muted,
+                TextFormatFlags.VerticalCenter | TextFormatFlags.Left | TextFormatFlags.NoPrefix | TextFormatFlags.EndEllipsis);
+        }
+    }
+
+    // Round radio button to match.
+    public class RoundRadio : RadioButton
+    {
+        bool hover;
+
+        public RoundRadio()
+        {
+            SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | ControlStyles.OptimizedDoubleBuffer | ControlStyles.ResizeRedraw, true);
+        }
+
+
+        public override Size GetPreferredSize(Size proposedSize)
+        {
+            Size t = TextRenderer.MeasureText(Text, Font, new Size(2000, 100), TextFormatFlags.NoPrefix | TextFormatFlags.SingleLine);
+            return new Size(25 + t.Width + 6, Math.Max(22, t.Height + 6));
+        }
+
+        protected override void OnMouseEnter(EventArgs e) { hover = true; Invalidate(); base.OnMouseEnter(e); }
+        protected override void OnMouseLeave(EventArgs e) { hover = false; Invalidate(); base.OnMouseLeave(e); }
+        protected override void OnCheckedChanged(EventArgs e) { Invalidate(); base.OnCheckedChanged(e); }
+        protected override void OnEnabledChanged(EventArgs e) { Invalidate(); base.OnEnabledChanged(e); }
+
+        protected override void OnPaint(PaintEventArgs e)
+        {
+            Graphics g = e.Graphics;
+            g.SmoothingMode = SmoothingMode.AntiAlias;
+            g.Clear(Parent != null ? Parent.BackColor : Theme.Panel);
+            Rectangle box = new Rectangle(1, (Height - 16) / 2, 16, 16);
+            Color edge = Checked ? Theme.Accent : (hover && Enabled ? Theme.Accent : Theme.Border);
+            using (SolidBrush b = new SolidBrush(Theme.Panel2)) g.FillEllipse(b, box);
+            using (Pen pen = new Pen(edge, Checked ? 1.5f : 1f)) g.DrawEllipse(pen, box);
+            if (Checked)
+                using (SolidBrush dot = new SolidBrush(Enabled ? Theme.Accent : Theme.Border))
+                    g.FillEllipse(dot, new Rectangle(box.Left + 4, box.Top + 4, 8, 8));
+            TextRenderer.DrawText(g, Text, Font, new Rectangle(25, 0, Math.Max(1, Width - 25), Height), Enabled ? ForeColor : Theme.Muted,
+                TextFormatFlags.VerticalCenter | TextFormatFlags.Left | TextFormatFlags.NoPrefix | TextFormatFlags.EndEllipsis);
+        }
+    }
+
+    // Rounds the corners of controls that cannot paint themselves rounded (lists, log box, preview).
+    public static class Rounder
+    {
+        static readonly ConditionalWeakTable<Control, object> hooked = new ConditionalWeakTable<Control, object>();
+
+        public static void Apply(Control c, int radius)
+        {
+            object o;
+            if (!hooked.TryGetValue(c, out o))
+            {
+                hooked.Add(c, new object());
+                c.Resize += delegate { Set(c, radius); };
+            }
+            Set(c, radius);
+        }
+
+        static void Set(Control c, int radius)
+        {
+            if (c.Width < 4 || c.Height < 4) return;
+            try
+            {
+                using (GraphicsPath p = Shapes.Round(new Rectangle(0, 0, c.Width, c.Height), radius))
+                {
+                    Region old = c.Region;
+                    c.Region = new Region(p);
+                    if (old != null) old.Dispose();
+                }
+            }
+            catch (Exception) { }
+        }
+    }
+
     // Gives scrollbars (and spin buttons) the dark / light Windows look instead of the plain grey classic one.
     public static class NativeTheme
     {
@@ -372,6 +485,8 @@ namespace AltHub
                 if (!f.IsHandleCreated) return;
                 int on = Theme.Dark ? 1 : 0;
                 if (DwmSetWindowAttribute(f.Handle, 20, ref on, 4) != 0) DwmSetWindowAttribute(f.Handle, 19, ref on, 4);
+                int round = 2;      // DWMWCP_ROUND: rounded window corners (Windows 11)
+                DwmSetWindowAttribute(f.Handle, 33, ref round, 4);
             }
             catch (Exception) { }
         }
