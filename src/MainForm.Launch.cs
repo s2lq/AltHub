@@ -23,7 +23,7 @@ namespace AltHub
         bool launching;
         readonly Random rng = new Random();
 
-        const int PageW = 660;
+        const int PageW = 690;
 
         void BuildLaunchPage()
         {

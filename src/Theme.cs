@@ -424,7 +424,7 @@ namespace AltHub
 
         public void Section(string text)
         {
-            Y += 20;
+            Y += 16;
             Panel bar = new Panel();          // small accent tab in front of the heading, for a bit of colour
             bar.Tag = "accent";
             bar.Size = new Size(4, 16);
@@ -440,7 +440,7 @@ namespace AltHub
             line.Width = Width - PadX * 2;
             line.Location = new Point(PadX, Y);
             Host.Controls.Add(line);
-            Y += 12;
+            Y += 8;
         }
 
         // Plain wrapped paragraph (page subtitles and the rare free text).
@@ -500,13 +500,13 @@ namespace AltHub
                 icon.Location = new Point(endX - 2, y - lastH + (lastH - icon.Height) / 2);
                 Host.Controls.Add(icon);
             }
-            return (y - Y) + lastH;
+            return y - Y;
         }
 
         // Controls on one line, no description.
         public void Row(params Control[] cs)
         {
-            Y += PlaceRow(cs, null) + 10;
+            Y += PlaceRow(cs, null) + 8;
         }
 
         // One function: controls + (i) hover explanation + a very short description underneath.
@@ -524,13 +524,13 @@ namespace AltHub
                 TextFormatFlags.SingleLine | TextFormatFlags.NoPadding).Height + 2;
             s.Location = new Point(PadX + 2, Y);
             Host.Controls.Add(s);
-            Y += s.Height + 12;
+            Y += s.Height + 10;
         }
 
         // A row with an (i) but no description line.
         public void RowTip(string tip, params Control[] cs)
         {
-            Y += PlaceRow(cs, tip) + 10;
+            Y += PlaceRow(cs, tip) + 8;
         }
 
         // A short line of text with an (i) at its end.
@@ -543,7 +543,7 @@ namespace AltHub
             InfoIcon icon = new InfoIcon(tip);
             icon.Location = new Point(PadX + 2 + w + 8, Y);
             Host.Controls.Add(icon);
-            Y += 28;
+            Y += 24;
         }
 
         public void Add(Control c)

@@ -147,6 +147,11 @@ namespace AltHub
                     "Servers page - search games, browse their servers (players / ping / FPS) and press 'Join with selected accounts' to put several accounts into the SAME server.",
                     "Launch all / Stop all - under the account list. Stop all closes only the Roblox windows this app started." },
 
+                new string[] { "Keyboard shortcuts",
+                    "In the AltHub window - Ctrl+L launch selected, Ctrl+Shift+L launch all, Ctrl+Shift+S stop all, Ctrl+N add account (browser login), Ctrl+E or F2 edit, Ctrl+F search (Esc clears), Ctrl+R check logins, F5 refresh status and Robux, Ctrl+G switch List / Cards, Ctrl+T tags menu, Ctrl+A select all, Delete remove.",
+                    "Pages - Ctrl+1 Home, 2 Launch, 3 Servers, 4 Private, 5 Layout, 6 Monitor, 7 Presets, 8 Perf, 9 Settings, 0 Help, Ctrl+, Settings, Ctrl+M Macro, Ctrl+Tab / Ctrl+Shift+Tab next / previous page.",
+                    "From any program (global) - Ctrl+Alt+F5 launch all, Ctrl+Alt+F6 stop all, Ctrl+Alt+F7 show / hide AltHub, Ctrl+Alt+F9 arrange windows, Ctrl+Alt+F10 / F11 focus the previous / next Roblox window." },
+
                 new string[] { "Private servers (the Private tab)",
                     "Add - give a private server a name (Grind, Trading ...) and paste its link (old ...?privateServerLinkCode=... or new share links). Servers are shared by all accounts: every account picks one in the 'Private server' drop-down on its card, in Edit, or from the Private tab.",
                     "Owner - the account the server was added with is its owner by default; you can pick or change it with Edit. For new share links Roblox can also tell us the owner's name ('Refresh owners').",

@@ -65,8 +65,8 @@ namespace AltHub
             AutoScaleDimensions = new SizeF(96F, 96F);
             AutoScaleMode = AutoScaleMode.Dpi;
             StartPosition = FormStartPosition.CenterScreen;
-            ClientSize = new Size(Math.Max(1320, Store.Settings.WinW), Math.Max(720, Store.Settings.WinH));
-            MinimumSize = new Size(1320, 720);
+            ClientSize = new Size(Math.Max(1400, Store.Settings.WinW), Math.Max(760, Store.Settings.WinH));
+            MinimumSize = new Size(1240, 700);
             try { Icon = Icon.ExtractAssociatedIcon(Application.ExecutablePath); } catch (Exception) { }
 
             BuildShell();
@@ -176,7 +176,7 @@ namespace AltHub
             {
                 split.Orientation = Orientation.Vertical;
                 split.SplitterWidth = 10;
-                split.FixedPanel = FixedPanel.Panel1;
+                split.FixedPanel = FixedPanel.Panel2;
                 split.Panel1MinSize = 320;
                 split.Panel2MinSize = 700;
             }
@@ -270,14 +270,26 @@ namespace AltHub
             bar.Controls.Add(f);
             host.Controls.Add(bar, 0, 0);
 
-            // one row when everything fits, two rows when it does not
-            bar.Resize += delegate
+            // as many rows as the tabs need at this width, so no tab is ever hidden
+            fitTabs = delegate
             {
-                int w = Math.Max(100, bar.ClientSize.Width - bar.Padding.Horizontal);
-                int h = f.GetPreferredSize(new Size(w, 0)).Height;
-                host.RowStyles[0].Height = Math.Max(48, h + bar.Padding.Vertical + 8 + 2);
+                foreach (Control c0 in f.Controls) { RoundButton rb = c0 as RoundButton; if (rb != null) rb.FitText(70); }   // widths follow the real font / DPI
+                int avail = Math.Max(100, bar.ClientSize.Width - bar.Padding.Horizontal);
+                int rows = 1, x = 0, rowH = 38;
+                foreach (Control c in f.Controls)
+                {
+                    int need = c.Width + c.Margin.Horizontal;
+                    if (x > 0 && x + need > avail) { rows++; x = 0; }
+                    x += need;
+                    rowH = Math.Max(rowH, c.Height + c.Margin.Vertical);
+                }
+                host.RowStyles[0].Height = rows * rowH + bar.Padding.Vertical + 6;
             };
+            bar.Resize += delegate { fitTabs(); };
+            f.SizeChanged += delegate { fitTabs(); };
         }
+
+        Action fitTabs;
 
         FlowLayoutPanel NewNavFlow()
         {
@@ -373,6 +385,59 @@ namespace AltHub
             RoundButton goLaunch = Ui.Btn("Go to Launch", 140, delegate { ShowPage("Launch"); }, "");
             goLaunch.Height = 40; goLaunch.Location = new Point(206, y + cardH + 24);
             page.Controls.Add(goLaunch);
+
+            // ---- overview: live numbers ----
+            int oy = y + cardH + 24 + 40 + 28;
+            Label ov = Ui.Lbl("Overview", "section"); ov.Location = new Point(20, oy);
+            page.Controls.Add(ov);
+            string[] caps = new string[] { "Accounts", "Running", "Private servers", "Robux (known)" };
+            homeVals = new Label[4];
+            int ox = 20;
+            for (int i = 0; i < 4; i++)
+            {
+                RoundPanel sc = new RoundPanel();
+                sc.Tag = "card2";
+                sc.BackColor = Theme.Panel2;
+                sc.Size = new Size(150, 76);
+                sc.Location = new Point(ox, oy + 28);
+                Label v = Ui.Lbl("-", ""); v.Font = Theme.Big; v.Location = new Point(14, 10); sc.Controls.Add(v);
+                Label c = Ui.Lbl(caps[i], "muted"); c.Location = new Point(14, 48); sc.Controls.Add(c);
+                homeVals[i] = v;
+                page.Controls.Add(sc);
+                ox += 162;
+            }
+
+            // ---- quick actions ----
+            int qy = oy + 28 + 76 + 28;
+            Label qa = Ui.Lbl("Quick actions", "section"); qa.Location = new Point(20, qy);
+            page.Controls.Add(qa);
+            RoundButton q1 = Ui.Btn("Launch all", 120, delegate { TrayLaunchAll(); }, "primary");
+            RoundButton q2 = Ui.Btn("Stop all", 100, delegate { StopAll(); }, "danger");
+            RoundButton q3 = Ui.Btn("Private servers", 140, delegate { ShowPage("Private"); }, "");
+            RoundButton q4 = Ui.Btn("Settings", 100, delegate { ShowPage("Settings"); }, "");
+            int qx = 20;
+            foreach (RoundButton qb in new RoundButton[] { q1, q2, q3, q4 })
+            {
+                qb.Height = 36; qb.Location = new Point(qx, qy + 28);
+                page.Controls.Add(qb);
+                qx += qb.Width + 10;
+            }
+            Label tip = Ui.Lbl("Tip: Ctrl+Alt+F5 launches everything and Ctrl+Alt+F6 stops everything from any program.", "muted");
+            tip.Location = new Point(20, qy + 28 + 36 + 14);
+            page.Controls.Add(tip);
+        }
+
+        Label[] homeVals;
+
+        void RefreshHome()
+        {
+            if (homeVals == null) return;
+            long robux = 0;
+            foreach (Account a in Store.Accounts) if (a.Robux > 0) robux += a.Robux;
+            homeVals[0].Text = Store.Accounts.Count.ToString();
+            homeVals[1].Text = runningIds.Count.ToString();
+            homeVals[2].Text = Store.Servers.Count.ToString();
+            homeVals[3].Text = robux.ToString("N0");
         }
 
         void ShowPage(string key)
@@ -384,6 +449,7 @@ namespace AltHub
             if (key == "Monitor") RefreshMonitor();
             if (key == "Presets") RefreshPresetList();
             if (key == "Private") RefreshPrivatePage();
+            if (key == "Home") RefreshHome();
         }
 
         // Separate top-level window (no owner), so its 'Stay on top' never lifts the hub with it.
@@ -502,7 +568,9 @@ namespace AltHub
                 if (Store.Settings.ShowPresence && tickN % Math.Max(10, Store.Settings.PresenceSec) == 0) RefreshPresence();
                 if (tickN % Math.Max(10, Store.Settings.WatcherSec) == 0) RunWatcher();
                 RobuxTick();
+                if (tickN % 5 == 0) RamCap.Tick(AddLog);
                 if (tickN % 5 == 0) SystemThemeTick();
+                if (currentPage == "Home" && tickN % 2 == 0) RefreshHome();
                 if (Store.Settings.AntiAfk && (DateTime.Now - lastAntiAfk).TotalMinutes >= Math.Max(1, Store.Settings.AntiAfkMin)
                     && (macroForm == null || macroForm.IsDisposed || !macroForm.Busy)) RunAntiAfk();
             }
@@ -590,10 +658,12 @@ namespace AltHub
             }
             try
             {
-                int w = Math.Min(Store.Settings.SplitW, split.Width - split.Panel2MinSize - split.SplitterWidth);
+                int right = Math.Max(split.Panel2MinSize, Store.Settings.RightW);
+                int w = split.Width - right - split.SplitterWidth;
                 split.SplitterDistance = Math.Max(split.Panel1MinSize, w);
             }
             catch (Exception ex) { Log.Error("splitter", ex); }
+            if (fitTabs != null) fitTabs();
             UpdateMultiChip();
             UsageMonitor.Update();
             UpdateStatusCells();
@@ -647,11 +717,13 @@ namespace AltHub
             try
             {
                 if (tray != null) { tray.Visible = false; tray.Dispose(); Notify.Tray = null; }
+                RamCap.ReleaseAll();
                 if (WindowState == FormWindowState.Normal)
                 {
                     Store.Settings.WinW = ClientSize.Width;
                     Store.Settings.WinH = ClientSize.Height;
                     Store.Settings.SplitW = split.SplitterDistance;
+                    Store.Settings.RightW = split.Panel2.Width;
                 }
                 Store.SaveSettings();
                 Store.SaveAccounts();
@@ -695,13 +767,13 @@ namespace AltHub
             bar.Tag = "card";
             RoundButton bAdd = Ui.Btn("+ Add", 72, null, "primary");
             bAdd.Click += delegate { addMenu.Show(bAdd, new Point(0, bAdd.Height)); };
-            Ui.Tips.SetToolTip(bAdd, "Add accounts: log in with a browser, paste cookies, or import a file.");
+            Ui.Tips.SetToolTip(bAdd, "Add accounts: log in with a browser (Ctrl+N), paste cookies, or import a file.");
             RoundButton bEdit = Ui.Btn("Edit", 54, delegate { EditSelected(); }, "");
-            Ui.Tips.SetToolTip(bEdit, "Edit alias, group, notes, password and the game of the selected account.");
+            Ui.Tips.SetToolTip(bEdit, "Edit alias, group, notes, password and the game of the selected account (Ctrl+E or F2).");
             RoundButton bRemove = Ui.Btn("Remove", 74, delegate { RemoveSelected(); }, "danger");
             Ui.Tips.SetToolTip(bRemove, "Delete the selected account(s) from this app (does not touch the Roblox account itself).");
             RoundButton bCheck = Ui.Btn("Check", 60, delegate { CheckAccounts(); }, "");
-            Ui.Tips.SetToolTip(bCheck, "Check cookies: tests whether the saved login of the selected accounts (or all, if none selected) still works.");
+            Ui.Tips.SetToolTip(bCheck, "Check cookies (Ctrl+R): tests whether the saved login of the selected accounts (or all, if none selected) still works.");
             RoundButton bActions = Ui.Btn("More", 58, null, "");
             bActions.Click += delegate { accMenu.Show(bActions, new Point(0, bActions.Height)); };
             Ui.Tips.SetToolTip(bActions, "Copy username/password/cookie, account details, refresh cookie, groups, sorting ... (also on right-click).");
@@ -726,7 +798,7 @@ namespace AltHub
             tbSearch = Ui.Txt(110, "");
             tbSearch.Margin = new Padding(0, 5, 8, 0);
             tbSearch.TextChanged += delegate { RefreshAccountList(); };
-            tbSearch.Tip("Type to filter by username, alias, notes or group.");
+            tbSearch.Tip("Type to filter by username, alias, notes, tags or group (Ctrl+F). Esc clears it.");
             Label l2 = Ui.Lbl("Group", "muted");
             l2.Margin = new Padding(0, 10, 4, 0);
             cbGroupFilter = new DarkCombo();
@@ -818,11 +890,11 @@ namespace AltHub
             bLaunch.Size = new Size(158, 34);
             bLaunch.Margin = new Padding(0, 7, 8, 5);
             bLaunch.Click += delegate { LaunchSelected(); };
-            Ui.Tips.SetToolTip(bLaunch, "Launch the selected accounts. Accounts with their own game use it; the others use the Launch page.");
+            Ui.Tips.SetToolTip(bLaunch, "Launch the selected accounts (Ctrl+L). Accounts with their own game use it; the others use the Launch page.");
             RoundButton bAll = Ui.Btn(Lang.T("Launch all"), 90, delegate { LaunchAllListed(); }, "");
-            Ui.Tips.SetToolTip(bAll, "Launch every account that is currently visible in the list.");
+            Ui.Tips.SetToolTip(bAll, "Launch every account that is currently visible in the list (Ctrl+Shift+L).");
             RoundButton bStop = Ui.Btn(Lang.T("Stop all"), 80, delegate { StopAll(); }, "danger");
-            Ui.Tips.SetToolTip(bStop, "Close every Roblox window that this app started (windows you opened yourself are left alone).");
+            Ui.Tips.SetToolTip(bStop, "Close every Roblox window that this app started (Ctrl+Shift+S). Windows you opened yourself are left alone.");
             RoundButton bUp = Ui.Btn("Up", 44, delegate { MoveSelected(-1); }, "");
             RoundButton bDown = Ui.Btn("Down", 54, delegate { MoveSelected(1); }, "");
             Ui.Tips.SetToolTip(bUp, "Move the selected account up in your own order.");

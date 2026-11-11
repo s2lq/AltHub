@@ -177,6 +177,7 @@ namespace AltHub
         public bool WroteFpsCap = false;
         public string View = "List";                // List | Cards
         public int SplitW = 600;
+        public int RightW = 740;                    // width of the page panel (the accounts list takes all the rest)
         public bool AutoRelaunch = false;
         public int WatcherSec = 60;
         public bool WatcherUsePresence = false;
@@ -217,6 +218,8 @@ namespace AltHub
         public bool Toasts = true;                  // Windows notifications for locked / kicked / crashed
         public bool HotkeysLaunch = true;           // Ctrl+Alt+F5 = launch all, Ctrl+Alt+F6 = stop all
         public bool RejoinSameServer = true;        // the watcher rejoins the server the account was in
+        public string RamCapMode = "Auto250";       // Off | Auto250 (250 MB, 500 MB when a window struggles) | Fixed250 | Fixed500
+        public bool RamCapSkipActive = true;        // the Roblox window you are playing is not limited
 
         // Discord webhook alerts (opt-in). The URL is only ever sent to Discord.
         public bool Webhook = false;
