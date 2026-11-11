@@ -30,6 +30,7 @@ namespace AltHub
                     u = await Api.Authenticated(a.Cookie);
                 }
                 LiveInfo li = AppState.Live(a);
+                RecordCheck(a, u);
                 if (u.Valid)
                 {
                     ok++;

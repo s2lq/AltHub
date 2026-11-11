@@ -589,12 +589,14 @@ namespace AltHub
                 if (t.Ticket == null)
                 {
                     log(who + "failed: " + t.Error);
-                    if (t.Unauthorized) AppState.Live(a).CookieBad = true;
+                    if (t.Unauthorized) { AppState.Live(a).CookieBad = true; Journal.Add(a, "CookieExpired", "Launch failed: the saved login is no longer valid."); }
+                    else if (!t.Locked) Journal.Add(a, "LaunchFailed", t.Error);
                     if (t.Locked)
                     {
                         LiveInfo li = AppState.Live(a);
                         if (!li.LockedAlerted && Store.Settings.WebhookLocked)
                         {
+                            Journal.Add(a, "Locked", "Roblox returned HTTP 403 (locked / blocked) when launching.");
                             Webhook.Send("Account locked", AppState.Name(a) + " — Roblox returned HTTP 403 (locked / blocked). Unlock it on roblox.com.", Webhook.Red);
                             Notify.Toast("Account locked", AppState.Name(a) + " looks locked or blocked by Roblox (HTTP 403).", System.Windows.Forms.ToolTipIcon.Error);
                             li.LockedAlerted = true;
@@ -700,6 +702,7 @@ namespace AltHub
                     System.Text.StringBuilder diag = new System.Text.StringBuilder();
                     foreach (int p in RobloxPids()) diag.Append(p).Append(FindInstance(p) != null ? "(tracked) " : " ");
                     int win = 0; foreach (WinInfo w in WindowLayout.FindRobloxWindows()) if (w.HasWindow) win++;
+                    Journal.Add(a, "LaunchFailed", "Roblox started but no window was detected in time.");
                     log(who + "NOT detected. Roblox procs: [" + diag.ToString().Trim() + "]  windows:" + win
                         + "  trackerId:" + a.TrackerId + "  cmdline-readable:" + Launcher.CanReadCommandLines()
                         + ". If a window is actually open, press 'Stop all' or close it in Task Manager, then relaunch.");
@@ -799,12 +802,13 @@ namespace AltHub
             }
 
             // Crash/disconnect alerts go out whether or not auto-relaunch is on.
-            if (Store.Settings.WebhookCrash || Store.Settings.Toasts)
-                foreach (Instance g in Instances.Where(i => !i.UserClosed && !IsAlive(i.Pid)).ToList())
-                {
-                    if (Store.Settings.WebhookCrash) Webhook.Send("Client closed", AppState.Name(g.Account) + " — its Roblox window disappeared unexpectedly.", Webhook.Red);
-                    Notify.Toast("Roblox closed", AppState.Name(g.Account) + " - its Roblox window disappeared unexpectedly.", System.Windows.Forms.ToolTipIcon.Warning);
-                }
+            foreach (Instance g in Instances.Where(i => !i.UserClosed && !i.CrashLogged && !IsAlive(i.Pid)).ToList())
+            {
+                g.CrashLogged = true;
+                Journal.Add(g.Account, "Crash", "Its Roblox window disappeared unexpectedly (ran " + (int)(DateTime.Now - g.Started).TotalMinutes + " min).");
+                if (Store.Settings.WebhookCrash) Webhook.Send("Client closed", AppState.Name(g.Account) + " — its Roblox window disappeared unexpectedly.", Webhook.Red);
+                Notify.Toast("Roblox closed", AppState.Name(g.Account) + " - its Roblox window disappeared unexpectedly.", System.Windows.Forms.ToolTipIcon.Warning);
+            }
 
             if (!Store.Settings.AutoRelaunch)
             {
@@ -831,6 +835,7 @@ namespace AltHub
                     {
                         log("Watcher: " + AppState.Name(i.Account) + " is not in a game anymore - closing and relaunching.");
                         Notify.Toast("Kicked or disconnected", AppState.Name(i.Account) + " left the game - bringing it back.", System.Windows.Forms.ToolTipIcon.Warning);
+                        Journal.Add(i.Account, "Kicked", "Left the game (kick, disconnect or the server shut down).");
                         KillPid(i.Pid);
                         dead.Add(i);
                     }
@@ -846,9 +851,11 @@ namespace AltHub
                 if (!BreakerAllows(d.Account))
                 {
                     log("Watcher: " + AppState.Name(d.Account) + " keeps crashing - the crash breaker stopped relaunching it. Launch it yourself to try again.");
+                    Journal.Add(d.Account, "Breaker", "Crash breaker stopped the relaunches (it keeps crashing).");
                     continue;
                 }
                 log("Watcher: relaunching " + AppState.Name(d.Account) + "...");
+                Journal.Add(d.Account, "Relaunch", "Brought back by the watcher.");
                 await LaunchAsync(d.Account, RejoinSpec(d.Account, d.Spec, log), log);
                 bool gaveUp = BreakerRecord(d.Account);
                 if (Store.Settings.WebhookRelaunch)

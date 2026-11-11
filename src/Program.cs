@@ -33,6 +33,16 @@ namespace AltHub
                 return;
             }
 
+            // Started by the updater: wait for the old copy to exit first, then remove the old exe.
+            int wp = Array.IndexOf(args, "--wait-pid");
+            if (wp >= 0 && wp + 1 < args.Length)
+            {
+                int oldPid;
+                if (int.TryParse(args[wp + 1], out oldPid))
+                    try { System.Diagnostics.Process.GetProcessById(oldPid).WaitForExit(20000); } catch (Exception) { }
+            }
+            try { string oldExe = Application.ExecutablePath + ".old"; if (System.IO.File.Exists(oldExe)) System.IO.File.Delete(oldExe); } catch (Exception) { }
+
             // Two copies of this app would fight over the Roblox lock, so only allow one.
             bool created;
             single = new Mutex(true, "AltHub_SingleInstance_v1", out created);

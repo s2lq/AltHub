@@ -2,6 +2,14 @@
 
 AltHub is a fork of [Roblox MultiHub](https://github.com/Roblox-MultiHub/Roblox-MultiHub) (GPL-3.0). Everything the original app does is still here.
 
+## 1.5.0
+
+- **Account health dashboard** (new Health tab): status of every login (working, signed out, locked), last check, last launch, crashes in the last 7 days, and what to do. One-click recovery: check all, re-login in the browser with the username and saved password filled in, refresh cookies, unlock help, remove broken accounts, export problems as CSV. Logins are also checked quietly every few hours.
+- **Event log**: every crash, kick, failed launch, relaunch, signed-out or locked account and recovery, per account, with CSV export.
+- **Auto-updater**: AltHub downloads a new release, verifies its SHA-256 checksum, replaces itself and restarts (or just asks first). Optional automatic installs.
+- **Code signing setup** with SignPath in the release workflow (see docs/SIGNING.md); runs once the SignPath secrets are added.
+- Fixed: the second row of tabs (Presets, Perf, Macro, Help, Settings) was missing until the window was resized on the first start.
+
 ## 1.4.0
 
 **New**

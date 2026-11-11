@@ -20,7 +20,7 @@ namespace AltHub
         NumericUpDown numMax, numPresence, numWatcher;
         RoundTextBox tbLauncherUrl;
         CheckBox chkPresence, chkRelaunch, chkWatcherPresence, chkStartup, chkAntiAfk, chkCheckLogins;
-        CheckBox chkCheckUpdates;
+        CheckBox chkCheckUpdates, chkAutoInstall;
         CheckBox chkCrashBreaker;
         NumericUpDown numCrashMax;
         CheckBox chkWebhook, chkWebhookCrash, chkWebhookRelaunch, chkWebhookBatch, chkWebhookLocked;
@@ -196,6 +196,11 @@ namespace AltHub
             p.Opt("Check right now.",
                 "Asks GitHub for the latest version immediately and tells you whether you are up to date.",
                 Ui.Btn("Check for updates now", 200, delegate { CheckUpdatesNow(); }, ""));
+            chkAutoInstall = Ui.Chk("Install updates automatically when AltHub starts", S.AutoInstallUpdates, null);
+            p.Opt("A new version is downloaded, checked and installed by itself.",
+                "Needs 'Check for a new version' above. The download comes from this project's GitHub releases over HTTPS and is only installed when it matches the SHA-256 checksum published with the release. AltHub restarts after installing. Off by default: you are asked first.",
+                chkAutoInstall);
+            chkAutoInstall.CheckedChanged += delegate { if (loadingSettings) return; Store.Settings.AutoInstallUpdates = chkAutoInstall.Checked; Store.SaveSettings(); };
 
             p.Section("Advanced");
             tbLauncherUrl = Ui.Txt(290, S.PlaceLauncherUrl);
@@ -273,6 +278,7 @@ namespace AltHub
             chkPresence.Checked = S.ShowPresence;
             chkCheckLogins.Checked = S.CheckLoginsAtStartup;
             if (chkCheckUpdates != null) chkCheckUpdates.Checked = S.CheckUpdates;
+            if (chkAutoInstall != null) chkAutoInstall.Checked = S.AutoInstallUpdates;
             chkRelaunch.Checked = S.AutoRelaunch;
             chkWatcherPresence.Checked = S.WatcherUsePresence;
             if (chkCrashBreaker != null)
@@ -510,14 +516,38 @@ namespace AltHub
                 UpdateInfo u = await Updater.Check();
                 if (IsDisposed || !u.Available) return;
                 AddLog("Update available: v" + u.Latest + " (you have v" + u.Current + ").");
-                if (MessageBox.Show(this,
-                        "A newer version of AltHub is available:\r\n\r\n" +
-                        "    v" + u.Latest + "   (you have v" + u.Current + ")\r\n\r\n" +
-                        "Open the download page now? Nothing is downloaded automatically.",
-                        "Update available", MessageBoxButtons.YesNo, MessageBoxIcon.Information) == DialogResult.Yes)
-                    OpenLink(u.Url, "download page");
+                if (Store.Settings.AutoInstallUpdates && !string.IsNullOrEmpty(u.AssetUrl)) { InstallUpdate(u); return; }
+                OfferUpdate(u);
             }
             catch (Exception ex) { Log.Error("CheckUpdatesOnStartup", ex); }
+        }
+
+        void OfferUpdate(UpdateInfo u)
+        {
+            bool can = !string.IsNullOrEmpty(u.AssetUrl);
+            string msg = "A newer version of AltHub is available:\r\n\r\n    v" + u.Latest + "   (you have v" + u.Current + ")\r\n\r\n" +
+                (can ? "Install it now? AltHub downloads it, checks it, replaces itself and restarts." : "Open the download page now?");
+            if (MessageBox.Show(this, msg, "Update available", MessageBoxButtons.YesNo, MessageBoxIcon.Information) != DialogResult.Yes) return;
+            if (can) InstallUpdate(u); else OpenLink(u.Url, "download page");
+        }
+
+        async void InstallUpdate(UpdateInfo u)
+        {
+            AddLog("Installing v" + u.Latest + "...");
+            string err = await Updater.Install(u, AddLog);
+            if (IsDisposed) return;
+            if (err != null)
+            {
+                AddLog("Update failed: " + err);
+                if (MessageBox.Show(this, "The update could not be installed:\r\n\r\n" + err + "\r\n\nOpen the download page instead?", "Update", MessageBoxButtons.YesNo, MessageBoxIcon.Warning) == DialogResult.Yes)
+                    OpenLink(u.Url, "download page");
+                return;
+            }
+            AddLog("Update installed - restarting.");
+            try { System.Diagnostics.Process.Start(Application.ExecutablePath, "--wait-pid " + System.Diagnostics.Process.GetCurrentProcess().Id); }
+            catch (Exception ex) { Log.Error("restart", ex); }
+            quitting = true;
+            Close();
         }
 
         // Manual check from the button: always tells you the result.
@@ -534,10 +564,7 @@ namespace AltHub
             if (u.Available)
             {
                 AddLog("Update available: v" + u.Latest + " (you have v" + u.Current + ").");
-                if (MessageBox.Show(this,
-                        "A newer version is available:\r\n\r\n    v" + u.Latest + "   (you have v" + u.Current + ")\r\n\r\nOpen the download page now?",
-                        "Update available", MessageBoxButtons.YesNo, MessageBoxIcon.Information) == DialogResult.Yes)
-                    OpenLink(u.Url, "download page");
+                OfferUpdate(u);
             }
             else
             {
@@ -545,6 +572,5 @@ namespace AltHub
                 MessageBox.Show(this, "You already have the latest version (v" + u.Current + ").", "Check for updates", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
         }
-
     }
 }

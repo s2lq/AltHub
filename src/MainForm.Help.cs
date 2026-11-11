@@ -149,7 +149,7 @@ namespace AltHub
 
                 new string[] { "Keyboard shortcuts",
                     "In the AltHub window - Ctrl+L launch selected, Ctrl+Shift+L launch all, Ctrl+Shift+S stop all, Ctrl+Shift+M mute / unmute selected, Ctrl+N add account (browser login), Ctrl+E or F2 edit, Ctrl+F search (Esc clears), Ctrl+R check logins, F5 refresh status and Robux, Ctrl+G switch List / Cards, Ctrl+T tags menu, Ctrl+A select all, Delete remove.",
-                    "Pages - Ctrl+1 Home, 2 Launch, 3 Servers, 4 Private, 5 Layout, 6 Monitor, 7 Presets, 8 Perf, 9 Settings, 0 Help, Ctrl+, Settings, Ctrl+M Macro, Ctrl+Tab / Ctrl+Shift+Tab next / previous page.",
+                    "Pages - Ctrl+1 Home, 2 Launch, 3 Servers, 4 Private, 5 Health, 6 Layout, 7 Monitor, 8 Presets, 9 Perf, 0 Help, Ctrl+, Settings, Ctrl+M Macro, Ctrl+Tab / Ctrl+Shift+Tab next / previous page.",
                     "From any program (global) - Ctrl+Alt+F5 launch all, Ctrl+Alt+F6 stop all, Ctrl+Alt+F7 show / hide AltHub, Ctrl+Alt+F9 arrange windows, Ctrl+Alt+F10 / F11 focus the previous / next Roblox window." },
 
                 new string[] { "Private servers (the Private tab)",
@@ -166,6 +166,15 @@ namespace AltHub
                     "Notes - the Description field in Edit is shown on the account card (for example 'farming').",
                     "Robux - loaded a few seconds after start and then every 30 minutes; More > 'Refresh Robux balance' updates the selected accounts now.",
                     "Proxy - an optional host:port (or http://user:pass@host:port) per account. It is used for this app's web requests for that account (login checks, status, tickets, link checks). Roblox's own game connection cannot be proxied by this app, so it does not hide your IP from the game servers." },
+
+                new string[] { "Account health and the event log",
+                    "Health tab - every account with its status (working, signed out, locked, not checked), when it was last checked, when it was last launched, how often it crashed or was kicked in the last 7 days, and what to do about it. 'Check all now' asks Roblox about every login; AltHub also does it quietly every few hours (you can change or turn that off on the same page).",
+                    "Recovery - 'Re-login selected' opens a browser for each signed-out account with its username (and saved password) filled in, so you only press Log In; the account keeps its settings. 'Refresh cookies' renews working logins before they expire. 'Unlock help' explains what to do for locked accounts. 'Remove broken accounts' cleans the list (a backup is made first). 'Export problems' saves a CSV you can send when asking for help.",
+                    "Event log - every crash, kick or disconnect, failed launch, relaunch, signed-out or locked account and every recovery, per account. Select accounts in the health list to see only their events; export it as CSV or clear it." },
+
+                new string[] { "Updates",
+                    "Settings > Updates - AltHub checks this project's GitHub releases when it starts. When a newer version exists it asks whether to install it: it downloads the release zip over HTTPS, checks it against the SHA-256 checksum published with the release, replaces AltHub.exe (the old one is renamed to AltHub.exe.old and removed on the next start) and restarts. 'Install updates automatically' skips the question.",
+                    "Windows SmartScreen - releases are signed once the SignPath setup in docs/SIGNING.md is done; until then Windows may show a warning for the downloaded exe." },
 
                 new string[] { "Mute and memory",
                     "Mute - select accounts and press Mute in the footer (or Ctrl+Shift+M). Their Roblox sound is muted through the Windows volume mixer: right away if they run, otherwise as soon as their window starts. Press it again to unmute. A 'Muted' chip shows in the list.",

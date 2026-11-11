@@ -51,6 +51,8 @@ Useful for grinding, trading, holding items on alt accounts, or just keeping all
 **🚀 Launching**
 - Join a game, a specific server (Job ID), a private server, or follow a player
 - **Private servers tab** - save named private servers (Grind, Trading ...) with their owner, give each account its own (drop-down on every account card), send a whole group or tag into one server with one click, and check that the links still work
+- **Account health dashboard** and **event log** - which logins work, crashes and kicks per account, one-click recovery
+- **Auto-updater** - downloads, verifies (SHA-256) and installs new releases
 - **Mute button** - mute the Roblox sound of selected accounts, before launch or while running
 - **Memory limit per Roblox window** - about 250 MB each (500 MB when a window struggles)
 - **Tags, colours, notes and Robux** per account, with bulk actions on a tag

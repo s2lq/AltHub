@@ -43,6 +43,7 @@ namespace AltHub
             AccountsPath = Path.Combine(Dir, "accounts.dat");
             ServersPath = Path.Combine(Dir, "servers.dat");
             Log.Init(Dir);
+            Journal.Init(Dir);
             LoadSettings();
         }
 

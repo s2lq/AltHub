@@ -7,7 +7,7 @@ namespace AltHub
     // RegisterHotkeys: Ctrl+Alt+F5 launch all, F6 stop all, F7 show / hide the window, F9-F11 layout.
     public partial class MainForm
     {
-        static readonly string[] TabOrder = new string[] { "Home", "Launch", "Servers", "Private", "Layout", "Monitor", "Presets", "Perf", "Settings", "Help" };
+        static readonly string[] TabOrder = new string[] { "Home", "Launch", "Servers", "Private", "Health", "Layout", "Monitor", "Presets", "Perf", "Settings", "Help" };
 
         protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
         {

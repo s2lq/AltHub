@@ -1,6 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.IO.Compression;
 using System.Net.Http;
+using System.Security.Cryptography;
+using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -13,11 +17,14 @@ namespace AltHub
         public string Current = "";
         public string Url = "";
         public string Error = "";
+        public string AssetUrl = "";        // the release zip (AltHub-vX-windows.zip)
+        public string AssetName = "";
+        public string SumsUrl = "";         // SHA256SUMS.txt of the release
     }
 
-    // Phase 1 update check: ask GitHub for the latest release and compare version numbers. It only
-    // READS a version and, when a newer one exists, points you at the download page - it never
-    // downloads or replaces anything itself, so it adds no "downloader" behaviour for antivirus to flag.
+    // Update check + installer. It asks GitHub for the latest release of this project and compares version numbers. When you
+    // say yes (or turn on automatic installs) it downloads the release zip over HTTPS, verifies it against the SHA-256 checksum
+    // the release publishes, replaces AltHub.exe (the running one is renamed, so nothing is deleted in use) and restarts.
     public static class Updater
     {
         public const string LatestApi = "https://api.github.com/repos/s2lq/AltHub/releases/latest";
@@ -53,6 +60,13 @@ namespace AltHub
                 info.Latest = (tag ?? "").TrimStart('v', 'V').Trim();
                 if (!string.IsNullOrEmpty(url)) info.Url = url;
                 info.Available = IsNewer(info.Latest, info.Current);
+                foreach (object a in Json.Arr(Json.Get(o, "assets")))
+                {
+                    string name = Json.Str(a, "name") ?? "";
+                    string dl = Json.Str(a, "browser_download_url") ?? "";
+                    if (name.EndsWith("-windows.zip", StringComparison.OrdinalIgnoreCase)) { info.AssetName = name; info.AssetUrl = dl; }
+                    else if (name.Equals("SHA256SUMS.txt", StringComparison.OrdinalIgnoreCase)) info.SumsUrl = dl;
+                }
             }
             catch (Exception ex)
             {
@@ -60,6 +74,58 @@ namespace AltHub
                 if (ex.Message.IndexOf("404", StringComparison.Ordinal) < 0) Log.Error("Updater", ex);   // 404 = no release published yet
             }
             return info;
+        }
+
+        // Downloads, verifies and installs the update. Returns null on success (then restart), otherwise what went wrong.
+        public static async Task<string> Install(UpdateInfo info, Action<string> log)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(info.AssetUrl)) return "This release has no Windows download attached.";
+                if (string.IsNullOrEmpty(info.SumsUrl)) return "This release has no checksum file (SHA256SUMS.txt), so it is not installed automatically.";
+                string exe = Application.ExecutablePath;
+                if (!Path.GetFileName(exe).Equals("AltHub.exe", StringComparison.OrdinalIgnoreCase)) return "AltHub is not running from AltHub.exe, so it cannot replace itself.";
+                string dir = Path.GetDirectoryName(exe);
+
+                log("Downloading " + info.AssetName + "...");
+                byte[] zip;
+                using (HttpClient dl = new HttpClient())
+                {
+                    dl.Timeout = TimeSpan.FromMinutes(10);
+                    dl.DefaultRequestHeaders.UserAgent.ParseAdd("AltHub");
+                    zip = await dl.GetByteArrayAsync(info.AssetUrl);
+                }
+
+                string sums = await Http.GetStringAsync(info.SumsUrl);
+                string want = "";
+                foreach (string line in sums.Replace("\r", "").Split('\n'))
+                    if (line.IndexOf(info.AssetName, StringComparison.OrdinalIgnoreCase) >= 0) { want = line.Trim().Split(' ')[0].ToLowerInvariant(); break; }
+                if (want.Length != 64) return "The checksum file does not list " + info.AssetName + ".";
+                string got;
+                using (SHA256 sha = SHA256.Create()) got = BitConverter.ToString(sha.ComputeHash(zip)).Replace("-", "").ToLowerInvariant();
+                if (got != want) return "The download does not match its checksum - it was not installed.";
+                log("Checksum OK.");
+
+                byte[] exeBytes = null;
+                using (ZipArchive za = new ZipArchive(new MemoryStream(zip), ZipArchiveMode.Read))
+                    foreach (ZipArchiveEntry e in za.Entries)
+                        if (e.FullName.Equals("AltHub.exe", StringComparison.OrdinalIgnoreCase))
+                            using (Stream s = e.Open()) using (MemoryStream ms = new MemoryStream()) { s.CopyTo(ms); exeBytes = ms.ToArray(); }
+                if (exeBytes == null || exeBytes.Length < 200000 || exeBytes[0] != (byte)'M' || exeBytes[1] != (byte)'Z') return "The download does not contain a valid AltHub.exe.";
+
+                string fresh = exe + ".new", old = exe + ".old";
+                File.WriteAllBytes(fresh, exeBytes);
+                if (File.Exists(old)) File.Delete(old);
+                File.Move(exe, old);                                  // a running exe can be renamed, not overwritten
+                try { File.Move(fresh, exe); }
+                catch (Exception) { File.Move(old, exe); throw; }
+                return null;
+            }
+            catch (Exception ex)
+            {
+                Log.Error("Updater.Install", ex);
+                return ex.Message;
+            }
         }
 
         static int[] Parse(string v)

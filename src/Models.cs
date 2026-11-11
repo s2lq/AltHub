@@ -27,6 +27,9 @@ namespace AltHub
         public string Tags = "";            // comma separated tags, for bulk actions
         public string ColorName = "";       // "" = none, otherwise one of AccountColors.Names
         public string Proxy = "";           // optional proxy for this app's web requests for the account: host:port or http://user:pass@host:port
+        public long LastCheckTicks;         // last login check (UTC ticks), 0 = never
+        public string LastCheck = "";       // ok | expired | locked | error
+        public string LastCheckText = "";
         public bool Muted;                  // the Roblox sound of this account is muted (applied as soon as its window runs)
         public long Robux = -1;             // last known Robux balance, -1 = not loaded yet
         public long TrackerId;              // stable "browser tracker id" for this account
@@ -219,6 +222,10 @@ namespace AltHub
         public bool Toasts = true;                  // Windows notifications for locked / kicked / crashed
         public bool HotkeysLaunch = true;           // Ctrl+Alt+F5 = launch all, Ctrl+Alt+F6 = stop all
         public bool RejoinSameServer = true;        // the watcher rejoins the server the account was in
+        public bool HealthAuto = true;              // check all logins every few hours in the background
+        public int HealthHours = 6;
+        public long HealthLastTicks;
+        public bool AutoInstallUpdates = false;     // install a new version by itself when AltHub starts
         public string RamCapMode = "Auto250";       // Off | Auto250 (250 MB, 500 MB when a window struggles) | Fixed250 | Fixed500
         public bool RamCapSkipActive = true;        // the Roblox window you are playing is not limited
 
@@ -418,6 +425,7 @@ namespace AltHub
         public DateTime Started;
         public LaunchSpec Spec;
         public bool UserClosed;
+        public bool CrashLogged;
         public int Strikes;
     }
 }

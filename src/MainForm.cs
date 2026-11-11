@@ -75,6 +75,7 @@ namespace AltHub
             BuildLaunchPage();
             BuildServersPage();
             BuildPrivatePage();
+            BuildHealthPage();
             BuildLayoutPage();
             BuildMonitorPage();
             BuildPresetsPage();
@@ -259,6 +260,7 @@ namespace AltHub
             f.Controls.Add(NavBtn("Home", Lang.T("Home"), false, null));
             f.Controls.Add(NavBtn("Launch", Lang.T("Launch"), false, null));
             f.Controls.Add(NavBtn("Servers", Lang.T("Servers"), false, null));
+            f.Controls.Add(NavBtn("Health", Lang.T("Health"), false, "Which logins work, which are signed out or locked, crash log and one-click recovery."));
             f.Controls.Add(NavBtn("Private", Lang.T("Private"), false, "Saved private servers: names, owners, accounts and groups on each one, link check."));
             f.Controls.Add(NavBtn("Layout", Lang.T("Layout"), false, null));
             f.Controls.Add(NavBtn("Monitor", Lang.T("Monitor"), false, null));
@@ -283,13 +285,29 @@ namespace AltHub
                     x += need;
                     rowH = Math.Max(rowH, c.Height + c.Margin.Vertical);
                 }
-                host.RowStyles[0].Height = rows * rowH + bar.Padding.Vertical + 6;
+                float want = rows * rowH + bar.Padding.Vertical + 6;
+                if (Math.Abs(host.RowStyles[0].Height - want) > 0.5f) host.RowStyles[0].Height = want;
             };
             bar.Resize += delegate { fitTabs(); };
             f.SizeChanged += delegate { fitTabs(); };
+            f.Layout += delegate { fitTabs(); };
+            host.SizeChanged += delegate { fitTabs(); };
         }
 
         Action fitTabs;
+
+        // Fonts and DPI scaling settle a moment after the window appears; fit the tab rows again a few times so the second
+        // row of tabs is there from the very first start, not only after a resize.
+        void ScheduleTabFit()
+        {
+            foreach (int ms in new int[] { 50, 250, 800, 2000 })
+            {
+                System.Windows.Forms.Timer t = new System.Windows.Forms.Timer();
+                t.Interval = ms;
+                t.Tick += delegate { t.Stop(); t.Dispose(); if (fitTabs != null && !IsDisposed) fitTabs(); };
+                t.Start();
+            }
+        }
 
         FlowLayoutPanel NewNavFlow()
         {
@@ -305,7 +323,7 @@ namespace AltHub
 
         static readonly Dictionary<string, string> NavIcons = new Dictionary<string, string>
         {
-            { "Home", "home" }, { "Launch", "play" }, { "Servers", "globe" }, { "Private", "lock" }, { "Layout", "window" },
+            { "Home", "home" }, { "Launch", "play" }, { "Servers", "globe" }, { "Private", "lock" }, { "Health", "health" }, { "Layout", "window" },
             { "Monitor", "chart" }, { "Presets", "bookmark" }, { "Perf", "bolt" }, { "Macro", "record" }, { "Help", "help" }, { "Settings", "gear" }
         };
 
@@ -450,6 +468,7 @@ namespace AltHub
             if (key == "Presets") RefreshPresetList();
             if (key == "Private") RefreshPrivatePage();
             if (key == "Home") RefreshHome();
+            if (key == "Health") RefreshHealthPage();
         }
 
         // Separate top-level window (no owner), so its 'Stay on top' never lifts the hub with it.
@@ -572,6 +591,7 @@ namespace AltHub
                 if (tickN % 5 == 0) RamCap.Tick(AddLog);
                 if (tickN % 5 == 0) SystemThemeTick();
                 if (tickN % 3 == 0) MuteTick();
+                HealthTick();
                 if (currentPage == "Home" && tickN % 2 == 0) RefreshHome();
                 if (Store.Settings.AntiAfk && (DateTime.Now - lastAntiAfk).TotalMinutes >= Math.Max(1, Store.Settings.AntiAfkMin)
                     && (macroForm == null || macroForm.IsDisposed || !macroForm.Busy)) RunAntiAfk();
@@ -666,6 +686,7 @@ namespace AltHub
             }
             catch (Exception ex) { Log.Error("splitter", ex); }
             if (fitTabs != null) fitTabs();
+            ScheduleTabFit();
             UpdateMultiChip();
             UsageMonitor.Update();
             UpdateStatusCells();
@@ -1710,6 +1731,7 @@ namespace AltHub
             {
                 UserInfo u = await Api.Authenticated(a.Cookie);
                 LiveInfo li = AppState.Live(a);
+                RecordCheck(a, u);
                 if (u.Valid)
                 {
                     a.UserId = u.Id;

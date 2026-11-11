@@ -18,6 +18,8 @@ jobs:
     runs-on: windows-latest
     env:
       GH_TOKEN: ${{ github.token }}
+      SIGNPATH_API_TOKEN: ${{ secrets.SIGNPATH_API_TOKEN }}
+      SIGNPATH_ORGANIZATION_ID: ${{ secrets.SIGNPATH_ORGANIZATION_ID }}
     steps:
       - name: Check out source
         uses: actions/checkout@v4
@@ -49,9 +51,38 @@ jobs:
             /nowarn:0168,0219,0414,0649,0169,0067 `
             /out:AltHub.exe /win32icon:app.ico /win32manifest:app.manifest `
             /r:System.dll /r:System.Core.dll /r:System.Drawing.dll /r:System.Windows.Forms.dll `
-            /r:System.Web.Extensions.dll /r:System.Net.Http.dll /r:System.Security.dll /r:System.Management.dll `
+            /r:System.Web.Extensions.dll /r:System.IO.Compression.dll /r:System.Net.Http.dll /r:System.Security.dll /r:System.Management.dll `
             /recurse:src\*.cs
           if (-not (Test-Path AltHub.exe)) { Write-Error "Build produced no exe"; exit 1 }
+
+      # Code signing with SignPath (free for open source, certificate from the SignPath Foundation). Only runs once the two
+      # secrets above exist - see docs/SIGNING.md. Without them the release is published unsigned, as before.
+      - name: Upload unsigned exe for signing
+        id: unsigned
+        if: env.SKIP != '1' && env.SIGNPATH_API_TOKEN != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: unsigned-althub
+          path: AltHub.exe
+
+      - name: Sign with SignPath
+        if: env.SKIP != '1' && env.SIGNPATH_API_TOKEN != ''
+        uses: signpath/github-action-submit-signing-request@v1
+        with:
+          api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
+          organization-id: ${{ secrets.SIGNPATH_ORGANIZATION_ID }}
+          project-slug: 'AltHub'
+          signing-policy-slug: 'release-signing'
+          github-artifact-id: ${{ steps.unsigned.outputs.artifact-id }}
+          wait-for-completion: true
+          output-artifact-directory: 'signed'
+
+      - name: Use the signed exe
+        if: env.SKIP != '1' && env.SIGNPATH_API_TOKEN != ''
+        shell: pwsh
+        run: |
+          if (-not (Test-Path signed\AltHub.exe)) { Write-Error "SignPath returned no signed AltHub.exe"; exit 1 }
+          Copy-Item signed\AltHub.exe AltHub.exe -Force
 
       - name: Package
         if: env.SKIP != '1'

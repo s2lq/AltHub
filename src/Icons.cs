@@ -95,6 +95,9 @@ namespace AltHub
                             g.DrawArc(p, 7f, 3.2f, 7.6f, 9.6f, -60, 120);
                         }
                         break;
+                    case "health":
+                        g.FillPolygon(b, new PointF[] { new PointF(6, 1.5f), new PointF(10, 1.5f), new PointF(10, 6), new PointF(14.5f, 6), new PointF(14.5f, 10), new PointF(10, 10), new PointF(10, 14.5f), new PointF(6, 14.5f), new PointF(6, 10), new PointF(1.5f, 10), new PointF(1.5f, 6), new PointF(6, 6) });
+                        break;
                     case "note":
                         using (GraphicsPath n = Round(new RectangleF(2.8f, 1.8f, 10.4f, 12.4f), 1.8f)) g.DrawPath(p, n);
                         g.DrawLine(p, 5.4f, 6f, 10.6f, 6f);
