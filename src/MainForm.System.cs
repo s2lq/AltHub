@@ -84,7 +84,7 @@ namespace AltHub
             p.Add(accentRow);
             p.Hint("Highlights, buttons and headings use this colour.", "Applied immediately. Pick one of the swatches or press Custom... to choose any colour.");
 
-            p.Section("Tray, notifications & hotkeys");
+            p.Section("Tray, notifications && hotkeys");
             chkTray = Ui.Chk("Show an AltHub icon in the system tray", S.Tray, null);
             p.Opt("Right-click the tray icon: Launch all, Stop all, Quit.",
                 "The tray icon lets you control the app without opening the window. Double-click it to bring the window back.",
@@ -181,12 +181,11 @@ namespace AltHub
 
         void PickCustomAccent()
         {
-            using (ColorDialog d = new ColorDialog())
-            {
-                d.FullOpen = true;
-                d.Color = Theme.Accent;
-                if (d.ShowDialog(this) == DialogResult.OK) SetAccent(ToHex(d.Color));
-            }
+            string v = Dialogs.Prompt(this, "Accent colour", "Colour as hex, for example #6366F1:", ToHex(Theme.Accent));
+            if (string.IsNullOrEmpty(v)) return;
+            Color c = ParseHex(v);
+            if (c.IsEmpty) { AddLog("That is not a colour - use six hex digits like #6366F1."); return; }
+            SetAccent(ToHex(c));
         }
 
         void MarkAccent()

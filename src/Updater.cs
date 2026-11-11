@@ -57,7 +57,7 @@ namespace AltHub
             catch (Exception ex)
             {
                 info.Error = ex.Message;
-                Log.Error("Updater", ex);
+                if (ex.Message.IndexOf("404", StringComparison.Ordinal) < 0) Log.Error("Updater", ex);   // 404 = no release published yet
             }
             return info;
         }

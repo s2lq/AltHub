@@ -230,7 +230,7 @@ namespace AltHub
             logBox.Visible = false;
             logHost.Controls.Add(logBox);
 
-            logHeader = Ui.Lbl("▸  Activity log", "muted");
+            logHeader = Ui.Lbl("Activity log  (click to open)", "muted");
             logHeader.AutoSize = false;
             logHeader.Dock = DockStyle.Top;
             logHeader.Height = 22;
@@ -256,17 +256,17 @@ namespace AltHub
             f.WrapContents = true;
             f.AutoSize = false;
             f.Dock = DockStyle.Fill;
-            f.Controls.Add(NavBtn("Home", Lang.T("\U0001F3E0  Home"), false, null));
-            f.Controls.Add(NavBtn("Launch", Lang.T("\U0001F680  Launch"), false, null));
-            f.Controls.Add(NavBtn("Servers", Lang.T("\U0001F310  Servers"), false, null));
-            f.Controls.Add(NavBtn("Private", Lang.T("\U0001F512  Private"), false, "Saved private servers: names, owners, accounts and groups on each one, link check."));
-            f.Controls.Add(NavBtn("Layout", Lang.T("\U0001FA9F  Layout"), false, null));
-            f.Controls.Add(NavBtn("Monitor", Lang.T("\U0001F4CA  Monitor"), false, null));
-            f.Controls.Add(NavBtn("Presets", Lang.T("\U0001F4BE  Presets"), false, null));
-            f.Controls.Add(NavBtn("Perf", Lang.T("⚡  Perf"), false, null));
-            f.Controls.Add(NavBtn("Macro", Lang.T("\U0001F3AC  Macro"), true, "Record and replay mouse + keyboard (like TinyTask) in its own window."));
-            f.Controls.Add(NavBtn("Help", Lang.T("❓  Help"), false, "Guides, FAQ and troubleshooting."));
-            f.Controls.Add(NavBtn("Settings", Lang.T("⚙  Settings"), false, "Open all options and toggles. Multi-instance, performance, alerts, startup and more."));
+            f.Controls.Add(NavBtn("Home", Lang.T("Home"), false, null));
+            f.Controls.Add(NavBtn("Launch", Lang.T("Launch"), false, null));
+            f.Controls.Add(NavBtn("Servers", Lang.T("Servers"), false, null));
+            f.Controls.Add(NavBtn("Private", Lang.T("Private"), false, "Saved private servers: names, owners, accounts and groups on each one, link check."));
+            f.Controls.Add(NavBtn("Layout", Lang.T("Layout"), false, null));
+            f.Controls.Add(NavBtn("Monitor", Lang.T("Monitor"), false, null));
+            f.Controls.Add(NavBtn("Presets", Lang.T("Presets"), false, null));
+            f.Controls.Add(NavBtn("Perf", Lang.T("Perf"), false, null));
+            f.Controls.Add(NavBtn("Macro", Lang.T("Macro"), true, "Record and replay mouse + keyboard (like TinyTask) in its own window."));
+            f.Controls.Add(NavBtn("Help", Lang.T("Help"), false, "Guides, FAQ and troubleshooting."));
+            f.Controls.Add(NavBtn("Settings", Lang.T("Settings"), false, "Open all options and toggles. Multi-instance, performance, alerts, startup and more."));
             bar.Controls.Add(f);
             host.Controls.Add(bar, 0, 0);
 
@@ -291,9 +291,17 @@ namespace AltHub
             return f;
         }
 
+        static readonly Dictionary<string, string> NavIcons = new Dictionary<string, string>
+        {
+            { "Home", "home" }, { "Launch", "play" }, { "Servers", "globe" }, { "Private", "lock" }, { "Layout", "window" },
+            { "Monitor", "chart" }, { "Presets", "bookmark" }, { "Perf", "bolt" }, { "Macro", "record" }, { "Help", "help" }, { "Settings", "gear" }
+        };
+
         RoundButton NavBtn(string key, string label, bool macro, string tip)
         {
             RoundButton b = Ui.Btn(label, 70, null, "nav");
+            string ic;
+            if (NavIcons.TryGetValue(key, out ic)) b.Icon = ic;
             b.FitText(70);
             b.Height = 32;
             b.Margin = new Padding(0, 0, 6, 6);
@@ -307,7 +315,7 @@ namespace AltHub
         {
             logOpen = !logOpen;
             logBox.Visible = logOpen;
-            logHeader.Text = (logOpen ? "▾" : "▸") + "  Activity log";
+            logHeader.Text = logOpen ? "Activity log  (click to close)" : "Activity log  (click to open)";
             if (rightTable != null) rightTable.RowStyles[2].Height = logOpen ? 190F : 34F;
         }
 
@@ -715,18 +723,18 @@ namespace AltHub
             filt.Tag = "card";
             Label l1 = Ui.Lbl("Search", "muted");
             l1.Margin = new Padding(0, 10, 4, 0);
-            tbSearch = Ui.Txt(150, "");
-            tbSearch.Margin = new Padding(0, 5, 12, 0);
+            tbSearch = Ui.Txt(110, "");
+            tbSearch.Margin = new Padding(0, 5, 8, 0);
             tbSearch.TextChanged += delegate { RefreshAccountList(); };
             tbSearch.Tip("Type to filter by username, alias, notes or group.");
             Label l2 = Ui.Lbl("Group", "muted");
             l2.Margin = new Padding(0, 10, 4, 0);
             cbGroupFilter = new DarkCombo();
-            cbGroupFilter.Width = 130;
-            cbGroupFilter.Margin = new Padding(0, 6, 14, 0);
+            cbGroupFilter.Width = 115;
+            cbGroupFilter.Margin = new Padding(0, 6, 8, 0);
             cbGroupFilter.SelectedIndexChanged += delegate { if (!suspendSel) RefreshAccountList(); };
             btnTags = Ui.Btn("Tags", 60, delegate { ShowTagMenu(); }, "nav");
-            btnTags.Margin = new Padding(0, 5, 14, 0);
+            btnTags.Margin = new Padding(0, 5, 8, 0);
             Ui.Tips.SetToolTip(btnTags, "Filter by tag, tag the selected accounts, set colours, and launch / stop / select every account with a tag.");
             btnViewList = Ui.Btn(Lang.T("List"), 52, delegate { SetView(false); }, "nav");
             btnViewList.Margin = new Padding(0, 5, 2, 0);
@@ -805,7 +813,8 @@ namespace AltHub
             foot.Margin = Padding.Empty;
             foot.Tag = "card";
             GradientButton bLaunch = new GradientButton();
-            bLaunch.Text = "\U0001F680  " + Lang.T("Launch selected");
+            bLaunch.Text = Lang.T("Launch selected");
+            bLaunch.Icon = "play";
             bLaunch.Size = new Size(158, 34);
             bLaunch.Margin = new Padding(0, 7, 8, 5);
             bLaunch.Click += delegate { LaunchSelected(); };
@@ -923,10 +932,13 @@ namespace AltHub
             return x + w;
         }
 
-        int DrawChip(Graphics g, string text, int x, int y, int limit)
+        int DrawChip(Graphics g, string text, int x, int y, int limit) { return DrawChip(g, text, x, y, limit, ""); }
+
+        int DrawChip(Graphics g, string text, int x, int y, int limit, string icon)
         {
             TextFormatFlags f = TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter | TextFormatFlags.NoPrefix | TextFormatFlags.NoPadding;
-            int w = TextRenderer.MeasureText(g, text, Theme.Small, new Size(1000, 20), f).Width + 16;
+            int iw = icon.Length > 0 ? 13 : 0;
+            int w = TextRenderer.MeasureText(g, text, Theme.Small, new Size(1000, 20), f).Width + 16 + iw;
             if (x + w > limit) return x;
             Rectangle r = new Rectangle(x, y, w, 17);
             using (System.Drawing.Drawing2D.GraphicsPath p = Shapes.Round(r, 8))
@@ -934,7 +946,12 @@ namespace AltHub
                 using (SolidBrush b = new SolidBrush(Theme.Panel)) g.FillPath(b, p);
                 using (Pen pen = new Pen(Theme.Border)) g.DrawPath(pen, p);
             }
-            TextRenderer.DrawText(g, text, Theme.Small, r, Theme.Text, f);
+            if (icon.Length > 0)
+            {
+                Icons.Draw(g, icon, new Rectangle(r.Left + 7, r.Top + 3, 11, 11), Theme.Muted);
+                TextRenderer.DrawText(g, text, Theme.Small, new Rectangle(r.Left + iw, r.Top, r.Width - iw, r.Height), Theme.Text, f);
+            }
+            else TextRenderer.DrawText(g, text, Theme.Small, r, Theme.Text, f);
             return x + w;
         }
 
@@ -998,7 +1015,7 @@ namespace AltHub
             int cx = DrawSeg(g, "@" + a.Username, x0, y2, limit, Theme.Muted);
             if (!string.IsNullOrEmpty(a.Group)) cx = DrawChip(g, Util.Short(a.Group, 20), cx + 8, y2, limit);
             string pn = PrivateNameOf(a);
-            if (pn.Length > 0) cx = DrawChip(g, "\U0001F512 " + Util.Short(pn, 14), cx + 8, y2, limit);
+            if (pn.Length > 0) cx = DrawChip(g, Util.Short(pn, 14), cx + 8, y2, limit, "lock");
             int tagN = 0;
             foreach (string tg in Util.TagList(a.Tags))
             {

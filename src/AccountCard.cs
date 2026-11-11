@@ -67,6 +67,7 @@ namespace AltHub
     {
         bool hover;
         bool stopMode;
+        public string Icon = "";
         public Color From = Color.FromArgb(124, 92, 252);
         public Color To = Color.FromArgb(40, 200, 235);
         public Color CornerColor = Color.Empty;     // what shows behind the rounded corners (default: parent's colour)
@@ -121,8 +122,18 @@ namespace AltHub
             {
                 g.FillPath(br, path);
             }
-            TextRenderer.DrawText(g, Text, Font, r, Enabled ? Color.White : Theme.Muted,
-                TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter | TextFormatFlags.NoPrefix);
+            Color fg = Enabled ? Color.White : Theme.Muted;
+            if (Icon.Length > 0)
+            {
+                int tw = TextRenderer.MeasureText(g, Text, Font, new Size(1000, 40), TextFormatFlags.NoPrefix | TextFormatFlags.NoPadding).Width;
+                int x0 = Math.Max(8, (Width - (16 + 8 + tw)) / 2);
+                Icons.Draw(g, Icon, new Rectangle(x0, (Height - 16) / 2, 16, 16), fg);
+                TextRenderer.DrawText(g, Text, Font, new Rectangle(x0 + 24, 0, Math.Max(1, Width - x0 - 24), Height), fg,
+                    TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.NoPrefix);
+            }
+            else
+                TextRenderer.DrawText(g, Text, Font, r, fg,
+                    TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter | TextFormatFlags.NoPrefix);
         }
     }
 
@@ -210,6 +221,7 @@ namespace AltHub
         List<string> privIds = new List<string>();
         string privSig = "";
         bool settingPriv;
+        bool hasNote;
         string[] tagArr = new string[0];
         string robuxText = "";
         Color stripe = Color.Empty;
@@ -249,8 +261,8 @@ namespace AltHub
             lblNote = Ui.Lbl("", "muted");
             lblNote.AutoSize = false;
             lblNote.AutoEllipsis = true;
-            lblNote.Location = new Point(14, 104);
-            lblNote.Size = new Size(312, 16);
+            lblNote.Location = new Point(34, 104);
+            lblNote.Size = new Size(292, 16);
 
             Label cap = Ui.Lbl("Game for this account  (link or Place ID, optional)", "muted");
             cap.Location = new Point(14, 128);
@@ -321,7 +333,8 @@ namespace AltHub
             string[] ta = string.IsNullOrEmpty(tags) ? new string[0] : tags.Split(',');
             bool changed = !string.Join("|", ta).Equals(string.Join("|", tagArr)) || robux != robuxText || color != stripe;
             tagArr = ta; robuxText = robux; stripe = color;
-            lblNote.Text = string.IsNullOrEmpty(note) ? "" : "\U0001F4DD  " + note;
+            lblNote.Text = note ?? "";
+            if (hasNote != !string.IsNullOrEmpty(note)) { hasNote = !string.IsNullOrEmpty(note); changed = true; }
 
             string sig = string.Join("|", ids.ToArray()) + "#" + string.Join("|", names.ToArray());
             if (sig != privSig && !cbPriv.DroppedDown)
@@ -433,6 +446,7 @@ namespace AltHub
                 TextRenderer.DrawText(g, t, Theme.Small, cr, Theme.Text, cf);
                 tx += w + 5;
             }
+            if (hasNote) Icons.Draw(g, "note", new Rectangle(14, 104, 15, 15), Theme.Muted);
             if (rw > 0)
                 TextRenderer.DrawText(g, robuxText, Theme.Small, new Rectangle(Width - 14 - rw, 82, rw, 18), Theme.Muted,
                     TextFormatFlags.Right | TextFormatFlags.VerticalCenter | TextFormatFlags.NoPrefix | TextFormatFlags.NoPadding);
