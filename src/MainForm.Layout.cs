@@ -656,6 +656,7 @@ namespace AltHub
         protected override void OnHandleCreated(EventArgs e)
         {
             base.OnHandleCreated(e);
+            NativeTheme.TitleBar(this);
             RegisterHotkeys();
         }
 

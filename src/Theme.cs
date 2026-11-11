@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
 
@@ -61,6 +62,9 @@ namespace AltHub
             {
                 c.BackColor = Bg;
                 c.ForeColor = Text;
+                Form fm = (Form)c;
+                if (fm.IsHandleCreated) NativeTheme.TitleBar(fm);
+                else fm.HandleCreated += delegate { NativeTheme.TitleBar(fm); };
             }
             else if (c is RoundButton || c is GradientButton || c is InfoIcon || c is DarkCombo)
             {
@@ -82,6 +86,7 @@ namespace AltHub
                 c.BackColor = tag == "rows" ? Panel : Panel2;
                 c.ForeColor = Text;
                 ((ListView)c).BorderStyle = BorderStyle.None;
+                Rounder.Apply(c, 8);
                 c.Invalidate();
             }
             else if (c is TextBox)
@@ -89,6 +94,7 @@ namespace AltHub
                 c.BackColor = tag == "log" ? Panel : Panel2;
                 c.ForeColor = Text;
                 if (!(c.Parent is NumericUpDown)) ((TextBox)c).BorderStyle = BorderStyle.FixedSingle;
+                if (((TextBox)c).Multiline) Rounder.Apply(c, 8);
             }
             else if (c is ComboBox)
             {
@@ -100,6 +106,7 @@ namespace AltHub
             {
                 c.BackColor = Panel2;
                 c.ForeColor = Text;
+                Rounder.Apply(c, 6);
             }
             else if (c is Button)
             {
@@ -137,7 +144,7 @@ namespace AltHub
                 else if (tag == "panel2") c.BackColor = Panel2;
                 else if (tag == "line") c.BackColor = Border;
                 else if (tag == "accent") c.BackColor = Accent;
-                else if (tag == "preview") c.BackColor = Bg;
+                else if (tag == "preview") { c.BackColor = Bg; Rounder.Apply(c, 8); }
                 else c.BackColor = Bg;
                 c.ForeColor = Text;
             }
@@ -313,7 +320,7 @@ namespace AltHub
 
         public static CheckBox Chk(string text, bool value, string tip)
         {
-            CheckBox c = new CheckBox();
+            CheckBox c = new RoundCheck();
             c.Text = text;
             c.AutoSize = true;
             c.Checked = value;
@@ -324,7 +331,7 @@ namespace AltHub
 
         public static RadioButton Rad(string text, bool value, string tip)
         {
-            RadioButton r = new RadioButton();
+            RadioButton r = new RoundRadio();
             r.Text = text;
             r.AutoSize = true;
             r.Checked = value;
@@ -389,7 +396,7 @@ namespace AltHub
 
         public void Section(string text)
         {
-            Y += 14;
+            Y += 20;
             Panel bar = new Panel();          // small accent tab in front of the heading, for a bit of colour
             bar.Tag = "accent";
             bar.Size = new Size(4, 16);
@@ -422,35 +429,56 @@ namespace AltHub
             return l;
         }
 
+        // Places the controls left to right; when a line is full the rest wraps onto the next one, so nothing is
+        // ever pushed past the right edge of the page. Returns the height used.
         int PlaceRow(Control[] cs, string tip)
         {
-            int h = 0;
-            foreach (Control c in cs) h = Math.Max(h, c.Height);
             InfoIcon icon = null;
-            if (!string.IsNullOrEmpty(tip))
-            {
-                icon = new InfoIcon(tip);
-                h = Math.Max(h, icon.Height);
-            }
+            if (!string.IsNullOrEmpty(tip)) icon = new InfoIcon(tip);
+            int limit = Width - PadX - (icon != null ? 26 : 0);
+
+            List<List<Control>> lines = new List<List<Control>>();
+            List<Control> cur = new List<Control>();
             int x = PadX;
             foreach (Control c in cs)
             {
-                c.Location = new Point(x, Y + (h - c.Height) / 2);
-                Host.Controls.Add(c);
+                if (cur.Count > 0 && x + c.Width > limit) { lines.Add(cur); cur = new List<Control>(); x = PadX; }
+                cur.Add(c);
                 x += c.Width + 10;
+            }
+            lines.Add(cur);
+
+            int y = Y;
+            int endX = PadX;
+            int lastH = 0;
+            for (int li = 0; li < lines.Count; li++)
+            {
+                int lh = 0;
+                foreach (Control c in lines[li]) lh = Math.Max(lh, c.Height);
+                if (li == lines.Count - 1 && icon != null) lh = Math.Max(lh, icon.Height);
+                int cx = PadX;
+                foreach (Control c in lines[li])
+                {
+                    c.Location = new Point(cx, y + (lh - c.Height) / 2);
+                    Host.Controls.Add(c);
+                    cx += c.Width + 10;
+                }
+                endX = cx;
+                lastH = lh;
+                y += lh + (li < lines.Count - 1 ? 6 : 0);
             }
             if (icon != null)
             {
-                icon.Location = new Point(x - 2, Y + (h - icon.Height) / 2);
+                icon.Location = new Point(endX - 2, y - lastH + (lastH - icon.Height) / 2);
                 Host.Controls.Add(icon);
             }
-            return h;
+            return (y - Y) + lastH;
         }
 
         // Controls on one line, no description.
         public void Row(params Control[] cs)
         {
-            Y += PlaceRow(cs, null) + 8;
+            Y += PlaceRow(cs, null) + 10;
         }
 
         // One function: controls + (i) hover explanation + a very short description underneath.
@@ -468,13 +496,13 @@ namespace AltHub
                 TextFormatFlags.SingleLine | TextFormatFlags.NoPadding).Height + 2;
             s.Location = new Point(PadX + 2, Y);
             Host.Controls.Add(s);
-            Y += s.Height + 9;
+            Y += s.Height + 12;
         }
 
         // A row with an (i) but no description line.
         public void RowTip(string tip, params Control[] cs)
         {
-            Y += PlaceRow(cs, tip) + 8;
+            Y += PlaceRow(cs, tip) + 10;
         }
 
         // A short line of text with an (i) at its end.

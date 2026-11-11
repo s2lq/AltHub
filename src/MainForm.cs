@@ -64,8 +64,8 @@ namespace AltHub
             AutoScaleDimensions = new SizeF(96F, 96F);
             AutoScaleMode = AutoScaleMode.Dpi;
             StartPosition = FormStartPosition.CenterScreen;
-            ClientSize = new Size(Math.Max(1240, Store.Settings.WinW), Math.Max(680, Store.Settings.WinH));
-            MinimumSize = new Size(1240, 680);
+            ClientSize = new Size(Math.Max(1320, Store.Settings.WinW), Math.Max(720, Store.Settings.WinH));
+            MinimumSize = new Size(1320, 720);
             try { Icon = Icon.ExtractAssociatedIcon(Application.ExecutablePath); } catch (Exception) { }
 
             BuildShell();
@@ -175,7 +175,7 @@ namespace AltHub
                 split.SplitterWidth = 10;
                 split.FixedPanel = FixedPanel.Panel1;
                 split.Panel1MinSize = 320;
-                split.Panel2MinSize = 640;
+                split.Panel2MinSize = 700;
             }
             catch (Exception ex) { Log.Error("split", ex); }
             split.BorderStyle = BorderStyle.None;
@@ -400,12 +400,6 @@ namespace AltHub
             btnViewCards.Active = cardsView;
             btnViewList.Invalidate();
             btnViewCards.Invalidate();
-        }
-
-        protected override void OnHandleCreated(EventArgs e)
-        {
-            base.OnHandleCreated(e);
-            NativeTheme.TitleBar(this);
         }
 
         void ApplyTheme()
