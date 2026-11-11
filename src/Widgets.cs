@@ -47,8 +47,8 @@ namespace AltHub
 
         public void FitText(int minWidth)
         {
-            Size ts = TextRenderer.MeasureText(Text, Font);
-            Width = Math.Max(minWidth, ts.Width + 28 + (Icon.Length > 0 ? 24 : 0));
+            Size ts = TextRenderer.MeasureText(Text, Font, new Size(2000, 60), TextFormatFlags.NoPadding | TextFormatFlags.NoPrefix | TextFormatFlags.SingleLine);
+            Width = Math.Max(minWidth, ts.Width + 34 + (Icon.Length > 0 ? 24 : 0));
         }
 
         protected override void OnMouseEnter(EventArgs e) { hover = true; Invalidate(); base.OnMouseEnter(e); }
@@ -116,8 +116,8 @@ namespace AltHub
                 int total = 16 + 8 + tw;
                 int x0 = LeftAlign ? r.Left + 12 : r.Left + Math.Max(8, (r.Width - total) / 2);
                 Icons.Draw(g, Icon, new Rectangle(x0, r.Top + (r.Height - 16) / 2, 16, 16), curText);
-                tr = new Rectangle(x0 + 24, r.Top, Math.Max(1, r.Right - x0 - 24 - 6), r.Height);
-                flags |= TextFormatFlags.Left;
+                tr = new Rectangle(x0 + 24, r.Top, tw + 10, r.Height);       // always the whole text, never "Lau..."
+                flags = TextFormatFlags.VerticalCenter | TextFormatFlags.SingleLine | TextFormatFlags.NoPrefix | TextFormatFlags.Left;
             }
             else if (LeftAlign) { tr = new Rectangle(r.Left + 12, r.Top, r.Width - 16, r.Height); flags |= TextFormatFlags.Left; }
             else flags |= TextFormatFlags.HorizontalCenter;
@@ -504,7 +504,9 @@ namespace AltHub
         static bool Wanted(Control c)
         {
             if (c is Form) return false;
-            if (c is ListView || c is NumericUpDown || c is ComboBox) return true;
+            if (c is ListView || c is NumericUpDown) return true;
+            ComboBox cb = c as ComboBox;
+            if (cb != null) return cb.DropDownStyle == ComboBoxStyle.DropDownList;
             TextBox tb = c as TextBox;
             if (tb != null) return tb.Multiline;
             if (c.GetType().Name == "UpDownButtons") return true;

@@ -41,6 +41,7 @@ namespace AltHub
         const int HK_NEXT = 9003;
         const int HK_LAUNCHALL = 9004;
         const int HK_STOPALL = 9005;
+        const int HK_SHOW = 9006;
 
         void BuildLayoutPage()
         {
@@ -650,6 +651,7 @@ namespace AltHub
             {
                 ok &= Native.RegisterHotKey(Handle, HK_LAUNCHALL, mod, 0x74);   // F5
                 ok &= Native.RegisterHotKey(Handle, HK_STOPALL, mod, 0x75);     // F6
+                ok &= Native.RegisterHotKey(Handle, HK_SHOW, mod, 0x76);        // F7
             }
             hotkeysRegistered = true;
             if (!ok) AddLog("Some hotkeys could not be registered (another program already uses them).");
@@ -663,6 +665,7 @@ namespace AltHub
             Native.UnregisterHotKey(Handle, HK_NEXT);
             Native.UnregisterHotKey(Handle, HK_LAUNCHALL);
             Native.UnregisterHotKey(Handle, HK_STOPALL);
+            Native.UnregisterHotKey(Handle, HK_SHOW);
             hotkeysRegistered = false;
         }
 
@@ -683,6 +686,7 @@ namespace AltHub
                 else if (id == HK_NEXT) FocusStep(1);
                 else if (id == HK_LAUNCHALL) TrayLaunchAll();
                 else if (id == HK_STOPALL) StopAll();
+                else if (id == HK_SHOW) ToggleWindow();
             }
             base.WndProc(ref m);
         }

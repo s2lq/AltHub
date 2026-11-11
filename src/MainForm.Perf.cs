@@ -33,6 +33,7 @@ namespace AltHub
             lblPerfLive = Ui.Lbl("", "good");
             p.Row(lblPerfLive);
 
+            BuildRamCapSection(p);
             BuildMemorySection(p);
             BuildMaxAltsSection(p);
 

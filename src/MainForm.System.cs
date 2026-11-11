@@ -99,9 +99,9 @@ namespace AltHub
             p.Opt("Pop-up notifications in addition to the Discord webhook.",
                 "Shows a Windows notification when an account gets locked, is kicked or disconnected, or a Roblox window crashes. Uses the tray icon, so it turns the tray icon on.",
                 chkToasts);
-            chkHotkeysLaunch = Ui.Chk("Global hotkeys: Ctrl+Alt+F5 = Launch all, Ctrl+Alt+F6 = Stop all", S.HotkeysLaunch, null);
+            chkHotkeysLaunch = Ui.Chk("Global hotkeys: Ctrl+Alt+F5 Launch all, F6 Stop all, F7 show / hide AltHub", S.HotkeysLaunch, null);
             p.Opt("Launch or stop everything from any program.",
-                "Launch all starts every account that is visible in the list (same as the Launch all button, without asking). Stop all closes every Roblox window this app started. The layout hotkeys (Ctrl+Alt+F9 / F10 / F11) are on the Layout page.",
+                "Launch all starts every account that is visible in the list (same as the Launch all button, without asking). Stop all closes every Roblox window this app started. F7 shows or hides the AltHub window (to the tray if the tray icon is on). The layout hotkeys (Ctrl+Alt+F9 / F10 / F11) are on the Layout page.",
                 chkHotkeysLaunch);
             chkRejoin = Ui.Chk("Rejoin the same server after a kick, disconnect or crash", S.RejoinSameServer, null);
             p.Opt("The watcher brings an account back into the server it was in.",
@@ -243,6 +243,12 @@ namespace AltHub
         void ApplyTrayVisibility()
         {
             if (tray != null) tray.Visible = Store.Settings.Tray;
+        }
+
+        void ToggleWindow()
+        {
+            if (Visible && WindowState != FormWindowState.Minimized) { if (Store.Settings.Tray) HideToTray(); else WindowState = FormWindowState.Minimized; }
+            else ShowFromTray();
         }
 
         void HideToTray()
