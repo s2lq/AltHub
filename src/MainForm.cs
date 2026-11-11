@@ -57,7 +57,8 @@ namespace AltHub
         public MainForm(bool minimized)
         {
             startMinimized = minimized;
-            Theme.Set(Store.Settings.Theme != "Light");
+            Theme.SetAccent(Store.Settings.AccentHex);
+            Theme.Set(Theme.ResolveDark(Store.Settings.Theme));
             Text = "AltHub";
             Font = Theme.Base;
             DoubleBuffered = true;
@@ -73,6 +74,7 @@ namespace AltHub
             BuildAccounts();
             BuildLaunchPage();
             BuildServersPage();
+            BuildPrivatePage();
             BuildLayoutPage();
             BuildMonitorPage();
             BuildPresetsPage();
@@ -84,6 +86,7 @@ namespace AltHub
             RefreshAccountList();
             SetView(Store.Settings.View == "Cards");
 
+            SetupTray();
             Log.Line += OnLogLine;
             Avatars.Updated += OnAvatarsUpdated;
             Application.AddMessageFilter(new WheelRedirect());   // mouse wheel scrolls the page, not a hovered text box
@@ -256,6 +259,7 @@ namespace AltHub
             f.Controls.Add(NavBtn("Home", Lang.T("\U0001F3E0  Home"), false, null));
             f.Controls.Add(NavBtn("Launch", Lang.T("\U0001F680  Launch"), false, null));
             f.Controls.Add(NavBtn("Servers", Lang.T("\U0001F310  Servers"), false, null));
+            f.Controls.Add(NavBtn("Private", Lang.T("\U0001F512  Private"), false, "Saved private servers: names, owners, accounts and groups on each one, link check."));
             f.Controls.Add(NavBtn("Layout", Lang.T("\U0001FA9F  Layout"), false, null));
             f.Controls.Add(NavBtn("Monitor", Lang.T("\U0001F4CA  Monitor"), false, null));
             f.Controls.Add(NavBtn("Presets", Lang.T("\U0001F4BE  Presets"), false, null));
@@ -371,6 +375,7 @@ namespace AltHub
             if (key == "Layout") RefreshWindowList();
             if (key == "Monitor") RefreshMonitor();
             if (key == "Presets") RefreshPresetList();
+            if (key == "Private") RefreshPrivatePage();
         }
 
         // Separate top-level window (no owner), so its 'Stay on top' never lifts the hub with it.
@@ -488,6 +493,8 @@ namespace AltHub
                 if (currentPage == "Monitor" && tickN % 2 == 0) RefreshMonitor();
                 if (Store.Settings.ShowPresence && tickN % Math.Max(10, Store.Settings.PresenceSec) == 0) RefreshPresence();
                 if (tickN % Math.Max(10, Store.Settings.WatcherSec) == 0) RunWatcher();
+                RobuxTick();
+                if (tickN % 5 == 0) SystemThemeTick();
                 if (Store.Settings.AntiAfk && (DateTime.Now - lastAntiAfk).TotalMinutes >= Math.Max(1, Store.Settings.AntiAfkMin)
                     && (macroForm == null || macroForm.IsDisposed || !macroForm.Busy)) RunAntiAfk();
             }
@@ -623,8 +630,15 @@ namespace AltHub
 
         protected override void OnFormClosing(FormClosingEventArgs e)
         {
+            if (!quitting && e.CloseReason == CloseReason.UserClosing && Store.Settings.CloseToTray && Store.Settings.Tray && tray != null)
+            {
+                e.Cancel = true;
+                HideToTray();
+                return;
+            }
             try
             {
+                if (tray != null) { tray.Visible = false; tray.Dispose(); Notify.Tray = null; }
                 if (WindowState == FormWindowState.Normal)
                 {
                     Store.Settings.WinW = ClientSize.Width;
@@ -711,6 +725,9 @@ namespace AltHub
             cbGroupFilter.Width = 130;
             cbGroupFilter.Margin = new Padding(0, 6, 14, 0);
             cbGroupFilter.SelectedIndexChanged += delegate { if (!suspendSel) RefreshAccountList(); };
+            btnTags = Ui.Btn("Tags", 60, delegate { ShowTagMenu(); }, "nav");
+            btnTags.Margin = new Padding(0, 5, 14, 0);
+            Ui.Tips.SetToolTip(btnTags, "Filter by tag, tag the selected accounts, set colours, and launch / stop / select every account with a tag.");
             btnViewList = Ui.Btn(Lang.T("List"), 52, delegate { SetView(false); }, "nav");
             btnViewList.Margin = new Padding(0, 5, 2, 0);
             Ui.Tips.SetToolTip(btnViewList, "Compact list with profile pictures.");
@@ -721,6 +738,7 @@ namespace AltHub
             filt.Controls.Add(tbSearch);
             filt.Controls.Add(l2);
             filt.Controls.Add(cbGroupFilter);
+            filt.Controls.Add(btnTags);
             filt.Controls.Add(btnViewList);
             filt.Controls.Add(btnViewCards);
             t.Controls.Add(filt, 0, 1);
@@ -824,6 +842,7 @@ namespace AltHub
             addMenu.Items.Add(Ui.Item("Add several with username:password...", delegate { AddSeveralByBrowser(); }));
             addMenu.Items.Add(Ui.Item("Paste cookie(s)...", delegate { AddByPaste(); }));
             addMenu.Items.Add(Ui.Item("Import cookies from a file...", delegate { AddByFile(); }));
+            addMenu.Items.Add(Ui.Item("Import an AltHub backup (.althub)...", delegate { ImportAccounts(); }));
             addMenu.Items.Add(new ToolStripSeparator());
             addMenu.Items.Add(Ui.Item("Tip: you can also drag a text file or text onto the accounts", null));
             addMenu.Items[addMenu.Items.Count - 1].Enabled = false;
@@ -839,9 +858,11 @@ namespace AltHub
             copy.DropDownItems.Add(Ui.Item("Cookie (.ROBLOSECURITY) - keep secret!", delegate { CopyField(delegate(Account a) { return a.Cookie; }); }));
             accMenu.Items.Add(copy);
             accMenu.Items.Add(Ui.Item("Show account details (age, Robux, Premium)", delegate { ShowDetails(); }));
+            accMenu.Items.Add(Ui.Item("Refresh Robux balance (selected accounts)", delegate { RefreshRobux(false); }));
             accMenu.Items.Add(Ui.Item("Copy a fresh login ticket", delegate { CopyTicket(); }));
             accMenu.Items.Add(Ui.Item("Open profile in browser", delegate { OpenProfile(); }));
             accMenu.Items.Add(Ui.Item("Refresh cookie (rotates it, signs out other sessions)", delegate { RotateSelected(); }));
+            accMenu.Items.Add(Ui.Item("Export accounts + settings to a backup file (.althub)...", delegate { ExportAccounts(); }));
             accMenu.Items.Add(new ToolStripSeparator());
             ToolStripMenuItem sort = Ui.Item("Sort accounts by", null);
             sort.DropDownItems.Add(Ui.Item("My own order (Up / Down buttons)", delegate { SetSort(-1); }));
@@ -933,6 +954,11 @@ namespace AltHub
                 if (sel) using (Pen pen = new Pen(Theme.Accent)) g.DrawPath(pen, path);
             }
 
+            Color stripeCol = AccountColors.Get(a.ColorName);
+            if (!stripeCol.IsEmpty)
+                using (System.Drawing.Drawing2D.GraphicsPath sp = Shapes.Round(new Rectangle(row.Left + 3, row.Top + 8, 4, row.Height - 16), 2))
+                using (SolidBrush sb = new SolidBrush(stripeCol)) g.FillPath(sb, sp);
+
             int d = 36;
             Rectangle av = new Rectangle(row.Left + 12, row.Top + (row.Height - d) / 2, d, d);
             Shapes.Avatar(g, a, av);
@@ -971,7 +997,16 @@ namespace AltHub
             int limit = right - reserve;
             int cx = DrawSeg(g, "@" + a.Username, x0, y2, limit, Theme.Muted);
             if (!string.IsNullOrEmpty(a.Group)) cx = DrawChip(g, Util.Short(a.Group, 20), cx + 8, y2, limit);
+            string pn = PrivateNameOf(a);
+            if (pn.Length > 0) cx = DrawChip(g, "\U0001F512 " + Util.Short(pn, 14), cx + 8, y2, limit);
+            int tagN = 0;
+            foreach (string tg in Util.TagList(a.Tags))
+            {
+                if (tagN++ >= 2) break;
+                cx = DrawChip(g, Util.Short(tg, 12), cx + 8, y2, limit);
+            }
             string used = a.LastUsedTicks > 0 ? "used " + Util.Ago(a.LastUsedTicks) : "never used";
+            if (a.Robux >= 0) used += "  -  R$ " + a.Robux.ToString("N0");
             DrawSeg(g, used, cx + 10, y2, limit, Theme.Muted);
         }
 
@@ -1030,6 +1065,7 @@ namespace AltHub
                 card.LaunchClicked += OnCardLaunch;
                 card.MenuClicked += OnCardMenu;
                 card.GameCommitted += OnCardGame;
+                card.PrivateChosen += OnCardPrivate;
                 cards[a.Id] = card;
                 cardHost.Controls.Add(card);
                 Theme.Apply(card);
@@ -1088,6 +1124,10 @@ namespace AltHub
             else info = last;
             string user = "@" + a.Username + (string.IsNullOrEmpty(a.Group) ? "" : "   -   " + Util.Short(a.Group, 20));
             card.SetState(DisplayName(a), user, info, pill, pc, running, GameText(a), selected.Contains(a.Id));
+            List<string> sids = new List<string>();
+            List<string> snames = new List<string>();
+            foreach (PrivateServer ps in Store.Servers) { sids.Add(ps.Id); snames.Add(Dialogs.ServerLabel(ps)); }
+            card.SetExtras(a.Tags, a.Robux >= 0 ? "R$ " + a.Robux.ToString("N0") : "", a.Description, AccountColors.Get(a.ColorName), sids, snames, a.PrivateServerId);
         }
 
         void OnCardClicked(AccountCard card, bool ctrl)
@@ -1118,6 +1158,17 @@ namespace AltHub
                 UpdateCount();
             }
             accMenu.Show(card.MenuButton, new Point(0, card.MenuButton.Height));
+        }
+
+        void OnCardPrivate(AccountCard card, string serverId)
+        {
+            Account a = card.Account;
+            if (a.PrivateServerId == serverId) return;
+            a.PrivateServerId = serverId;
+            PrivateServer ps = Store.FindServer(serverId);
+            AddLog(ps == null ? AppState.Name(a) + " no longer has a private server." : AppState.Name(a) + " will join the private server '" + ps.Name + "' when launched.");
+            Store.SaveAccounts();
+            RefreshPrivatePage();
         }
 
         void OnCardGame(AccountCard card, string text)
@@ -1209,7 +1260,8 @@ namespace AltHub
             string grp = (cbGroupFilter == null || cbGroupFilter.SelectedItem == null) ? "All groups" : cbGroupFilter.SelectedItem.ToString();
             IEnumerable<Account> list = Store.Accounts;
             if (q.Length > 0)
-                list = list.Where(a => (a.Username + " " + a.Alias + " " + a.Description + " " + a.Group + " " + a.DisplayName).ToLowerInvariant().Contains(q));
+                list = list.Where(a => (a.Username + " " + a.Alias + " " + a.Description + " " + a.Group + " " + a.DisplayName + " " + a.Tags).ToLowerInvariant().Contains(q));
+            if (tagFilter.Length > 0) list = list.Where(a => Util.TagList(a.Tags).Contains(tagFilter, StringComparer.OrdinalIgnoreCase));
             if (grp == "(no group)") list = list.Where(a => string.IsNullOrEmpty(a.Group));
             else if (grp != "All groups") list = list.Where(a => a.Group == grp);
 
@@ -1483,17 +1535,6 @@ namespace AltHub
             return s.Count > 0 ? s[0] : null;
         }
 
-        async void ResolvePendingPrivate(List<Account> accs)
-        {
-            foreach (Account a in accs)
-                if (a.PrivateLink.Length > 0 && string.IsNullOrEmpty(a.PrivateCode))
-                {
-                    string l = a.PrivateLink;
-                    if (!await SetPrivateLink(a, l)) a.PrivateLink = "";    // could not resolve: do not keep a dead link
-                }
-            Store.SaveAccounts();
-        }
-
         void EditSelected()
         {
             List<Account> sel = SelectedAccounts();
@@ -1506,7 +1547,6 @@ namespace AltHub
                 if (sel.Count > 1) AddLog("Saved the changes to " + sel.Count + " accounts.");
                 Store.SaveAccounts();
                 RefreshAccountList();
-                ResolvePendingPrivate(sel);
             }
         }
 

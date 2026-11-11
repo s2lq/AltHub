@@ -103,6 +103,7 @@ namespace AltHub
             }
             sb.AppendLine("Tip: add a verified email address (and 2-step verification) to every account in Roblox's account settings. Roblox can lock accounts used a lot from one PC (players report it from about 8 accounts). With a verified email you can always get the account back.");
             string title = locked.Count > 0 && signedOut.Count == 0 ? "AltHub - accounts locked" : "AltHub - account problems";
+            Notify.Toast(title, signedOut.Count + " signed out, " + locked.Count + " locked.", ToolTipIcon.Warning);
             MessageBox.Show(this, sb.ToString(), title, MessageBoxButtons.OK, MessageBoxIcon.Warning);
         }
     }

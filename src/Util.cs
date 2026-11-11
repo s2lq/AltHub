@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Text.RegularExpressions;
 using System.Web.Script.Serialization;
 using System.Windows.Forms;
@@ -132,6 +133,27 @@ namespace AltHub
     public static class Util
     {
         static readonly DateTime Epoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+
+        // "a, b ,a,,c" -> "a,b,c"
+        public static string CleanTags(string s)
+        {
+            List<string> r = new List<string>();
+            if (!string.IsNullOrEmpty(s))
+                foreach (string t0 in s.Split(new char[] { ',', ';' }))
+                {
+                    string t = t0.Trim();
+                    if (t.Length > 0 && !r.Contains(t, StringComparer.OrdinalIgnoreCase)) r.Add(t);
+                }
+            return string.Join(",", r.ToArray());
+        }
+
+        public static List<string> TagList(string s)
+        {
+            List<string> r = new List<string>();
+            string c = CleanTags(s);
+            if (c.Length > 0) r.AddRange(c.Split(','));
+            return r;
+        }
 
         public static long NowMs() { return (long)(DateTime.UtcNow - Epoch).TotalMilliseconds; }
 

@@ -33,7 +33,7 @@ namespace AltHub
         }
 
         // Adds OK / Cancel buttons at the bottom right.
-        static void OkCancel(Form f, string okText)
+        public static void OkCancel(Form f, string okText)
         {
             Button ok = Ui.Btn(okText, 110, null, "primary");
             ok.DialogResult = DialogResult.OK;
@@ -162,7 +162,7 @@ namespace AltHub
             bool multi = list.Count > 1;
             Account a = list[0];
             string names = string.Join(" - ", list.Select(x => x.Username).ToArray());
-            Form f = Make((multi ? "Edit accounts - " : "Edit account - ") + names, 520, 554);
+            Form f = Make((multi ? "Edit accounts - " : "Edit account - ") + names, 520, 660);
             int y = 14;
             if (multi)
             {
@@ -200,8 +200,41 @@ namespace AltHub
             pass.UseSystemPasswordChar = true;
             RoundTextBox place = AddField(f, Mixed("Game for this account - game link, private server link or Place ID", cGame), cGame, ref y);
             RoundTextBox job = AddField(f, Mixed("Saved Job ID / server (optional)", cJob), cJob, ref y);
-            string cPriv = Common(list, x => x.PrivateLink);
-            RoundTextBox priv = AddField(f, Mixed("Private server link for this account (empty = none)", cPriv), cPriv, ref y);
+            string cPriv = Common(list, x => x.PrivateServerId);
+            Put(f, Ui.Lbl(Mixed("Private server (from the Private tab)", cPriv), "muted"), 16, y);
+            DarkCombo priv = new DarkCombo();
+            priv.Width = 488;
+            priv.Font = Theme.Base;
+            priv.Items.Add("(none)");
+            foreach (PrivateServer ps in Store.Servers) priv.Items.Add(ServerLabel(ps));
+            if (cPriv != null)
+            {
+                int pi = Store.Servers.FindIndex(x => x.Id == cPriv);
+                priv.SelectedIndex = pi + 1;                // -1 + 1 = 0 = (none) when the server is gone
+            }
+            bool privTouched = false;
+            priv.SelectedIndexChanged += delegate { privTouched = true; };
+            Put(f, priv, 16, y + 18);
+            y += 50;
+
+            string cTags = Common(list, x => x.Tags);
+            string cColor = Common(list, x => x.ColorName);
+            Put(f, Ui.Lbl(Mixed("Tags (comma separated)", cTags), "muted"), 16, y);
+            Put(f, Ui.Lbl("Colour", "muted"), 336, y);
+            RoundTextBox tags = Put(f, Ui.Txt(308, cTags ?? ""), 16, y + 18);
+            DarkCombo col = new DarkCombo();
+            col.Width = 168;
+            col.Font = Theme.Base;
+            col.Items.Add("(none)");
+            foreach (string cn in AccountColors.Names) col.Items.Add(cn);
+            if (cColor != null) col.SelectedIndex = Math.Max(0, Array.IndexOf(AccountColors.Names, cColor) + 1);
+            bool colTouched = false;
+            col.SelectedIndexChanged += delegate { colTouched = true; };
+            Put(f, col, 336, y + 18);
+            y += 50;
+
+            string cProxy = Common(list, x => x.Proxy);
+            RoundTextBox proxy = AddField(f, Mixed("Proxy for this account's web requests - login checks etc. (host:port or http://user:pass@host:port)", cProxy), cProxy, ref y);
 
             Put(f, Ui.Lbl(cFps < 0 ? "FPS cap  (0 = use the global cap)  - different per account" : "FPS cap for this account  (0 = use the global cap)", "muted"), 16, y + 4);
             NumericUpDown fps = Put(f, Ui.Num(0, 1000, Math.Max(0, cFps), 80), 424, y);
@@ -237,13 +270,18 @@ namespace AltHub
                     }
                 }
                 if (Changed(cJob, job.Text.Trim(), out v)) foreach (Account x in list) x.SavedJobId = v;
-                if (Changed(cPriv, priv.Text.Trim(), out v))
-                    foreach (Account x in list)
-                    {
-                        x.PrivateLink = v; x.PrivatePlaceId = 0; x.PrivateCode = "";   // resolved by the caller (share links need the network)
-                        long pp; string pc;
-                        if (Api.ParseOldPrivate(v, out pp, out pc)) { x.PrivatePlaceId = pp; x.PrivateCode = pc; }
-                    }
+                if (privTouched)
+                {
+                    string sid = priv.SelectedIndex <= 0 ? "" : Store.Servers[priv.SelectedIndex - 1].Id;
+                    foreach (Account x in list) x.PrivateServerId = sid;
+                }
+                if (Changed(cTags, tags.Text.Trim(), out v)) foreach (Account x in list) x.Tags = Util.CleanTags(v);
+                if (colTouched)
+                {
+                    string cn2 = col.SelectedIndex <= 0 ? "" : AccountColors.Names[col.SelectedIndex - 1];
+                    foreach (Account x in list) x.ColorName = cn2;
+                }
+                if (Changed(cProxy, proxy.Text.Trim(), out v)) foreach (Account x in list) x.Proxy = v;
                 if (cFps < 0 ? fpsTouched : (int)fps.Value != cFps) foreach (Account x in list) x.FpsCap = (int)fps.Value;
                 if (cookie != null)
                 {
@@ -267,6 +305,44 @@ namespace AltHub
             foreach (Account x in list)
                 if ((get(x) ?? "") != first) return null;
             return first;
+        }
+
+        // Name, owner and link of a saved private server.
+        public static bool EditServer(IWin32Window owner, PrivateServer ps)
+        {
+            Form f = Make("Edit private server", 480, 330);
+            int y = 14;
+            RoundTextBox name = AddField(f, "Name", ps.Name, ref y);
+            Put(f, Ui.Lbl("Owner account", "muted"), 16, y);
+            DarkCombo own = new DarkCombo();
+            own.Width = 448;
+            own.Font = Theme.Base;
+            own.Items.Add("(unknown)");
+            foreach (Account a in Store.Accounts) own.Items.Add(AppState.Name(a));
+            int oi = Store.Accounts.FindIndex(x => x.Id == ps.OwnerAccountId);
+            own.SelectedIndex = oi + 1;
+            Put(f, own, 16, y + 18);
+            y += 50;
+            RoundTextBox ownerName = AddField(f, "Owner name on Roblox (optional - filled in automatically when Roblox tells us)", ps.OwnerName, ref y);
+            RoundTextBox link = AddField(f, "Link", ps.Link, ref y);
+            link.ReadOnly = true;
+            OkCancel(f, "Save");
+            Theme.Apply(f);
+            bool ok = f.ShowDialog(owner) == DialogResult.OK;
+            if (ok)
+            {
+                ps.Name = name.Text.Trim().Length > 0 ? name.Text.Trim() : ps.Name;
+                ps.OwnerAccountId = own.SelectedIndex <= 0 ? "" : Store.Accounts[own.SelectedIndex - 1].Id;
+                ps.OwnerName = ownerName.Text.Trim();
+            }
+            f.Dispose();
+            return ok;
+        }
+
+        public static string ServerLabel(PrivateServer s)
+        {
+            string game = string.IsNullOrEmpty(s.GameName) ? (s.PlaceId > 0 ? "place " + s.PlaceId : "") : s.GameName;
+            return (string.IsNullOrEmpty(s.Name) ? "(unnamed)" : s.Name) + (game.Length > 0 ? "  -  " + game : "");
         }
 
         static string Mixed(string label, string common)

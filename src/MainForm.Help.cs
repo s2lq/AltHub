@@ -147,6 +147,28 @@ namespace AltHub
                     "Servers page - search games, browse their servers (players / ping / FPS) and press 'Join with selected accounts' to put several accounts into the SAME server.",
                     "Launch all / Stop all - under the account list. Stop all closes only the Roblox windows this app started." },
 
+                new string[] { "Private servers (the Private tab)",
+                    "Add - give a private server a name (Grind, Trading ...) and paste its link (old ...?privateServerLinkCode=... or new share links). Servers are shared by all accounts: every account picks one in the 'Private server' drop-down on its card, in Edit, or from the Private tab.",
+                    "Owner - the account the server was added with is its owner by default; you can pick or change it with Edit. For new share links Roblox can also tell us the owner's name ('Refresh owners').",
+                    "Assign - select accounts on the far left, pick a server in the Private tab and press 'Assign to selected accounts'. 'Launch its accounts' starts everybody on that server one after another.",
+                    "Groups and tags - pick a group or tag and a server and every account in it is put on that server; 'Assign and launch' starts them right away.",
+                    "Check link - asks Roblox whether each assigned account can join (not invited, deleted server or changed link show up in red). Checking can briefly start the private server.",
+                    "Move to a new PC - '+ Add' > 'Import an AltHub backup', and More > 'Export accounts + settings'. The .althub file is encrypted with a password you choose and holds cookies, games, private servers, tags, notes and proxies." },
+
+                new string[] { "Tags, colours, notes, Robux and proxies",
+                    "Tags - Edit an account (or use the Tags button above the list) to add comma-separated tags. The Tags button filters the list by a tag and can select, launch or stop every account with it, set their colour or remove the tag from everybody.",
+                    "Colour - a coloured stripe on the row and the card, to find accounts at a glance.",
+                    "Notes - the Description field in Edit is shown on the account card (for example 'farming').",
+                    "Robux - loaded a few seconds after start and then every 30 minutes; More > 'Refresh Robux balance' updates the selected accounts now.",
+                    "Proxy - an optional host:port (or http://user:pass@host:port) per account. It is used for this app's web requests for that account (login checks, status, tickets, link checks). Roblox's own game connection cannot be proxied by this app, so it does not hide your IP from the game servers." },
+
+                new string[] { "Tray, notifications and hotkeys",
+                    "Tray icon - right-click for Launch all, Stop all and Quit; double-click to open the window. Settings can hide the window to the tray when you minimize or close it.",
+                    "Windows notifications - when an account is locked, kicked or disconnected, or a Roblox window crashes (needs the tray icon).",
+                    "Hotkeys - Ctrl+Alt+F5 = Launch all, Ctrl+Alt+F6 = Stop all (plus the layout hotkeys on the Layout page).",
+                    "Rejoin the same server - the watcher remembers the server each account is in and brings it back there after a kick, disconnect or crash; after two failed tries it joins any server of the game.",
+                    "Appearance - Dark, Light or Follow Windows, plus an accent colour picker (Settings)." },
+
                 new string[] { "Windows and layout",
                     "Arrange now spreads the Roblox windows over the monitor you choose. Roblox normally refuses to get smaller than about 816 x 638, but the app resizes windows in a way that skips that limit, so even 25 windows fit on one screen. If a window still refuses, its border is removed automatically; only if even that fails are the windows stacked with overlap (the preview turns orange).",
                     "Automatic grid (default) - rows and columns follow the number of windows and your screen shape (2 = side by side, 4 = 2x2, 6 = 3x2, 9 = 3x3). Custom grid - your own rows / columns. Fixed size - every window gets the exact pixel size you choose.",

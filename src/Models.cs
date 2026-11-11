@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 
 namespace AltHub
 {
@@ -19,18 +20,57 @@ namespace AltHub
         public string SavedJobId = "";
         public int FpsCap;                  // 0 = use the global FPS cap; otherwise this account launches with its own cap
         public string GameLink = "";        // game link / Place ID this account joins by default
-        public string PrivateLink = "";     // private server link saved for THIS account (as typed / pasted)
-        public long PrivatePlaceId;         // resolved from PrivateLink
-        public string PrivateCode = "";     // resolved private server link code; empty = no private server saved
+        public string PrivateLink = "";     // legacy (single private server): moved into the private server list on load
+        public long PrivatePlaceId;         // legacy
+        public string PrivateCode = "";     // legacy
+        public string PrivateServerId = ""; // the private server (see Store.Servers) this account joins; "" = none
+        public string Tags = "";            // comma separated tags, for bulk actions
+        public string ColorName = "";       // "" = none, otherwise one of AccountColors.Names
+        public string Proxy = "";           // optional proxy for this app's web requests for the account: host:port or http://user:pass@host:port
+        public long Robux = -1;             // last known Robux balance, -1 = not loaded yet
         public long TrackerId;              // stable "browser tracker id" for this account
         public long LastUsedTicks;
         public int Order;
         public bool LoginLost;              // Roblox ended this login and you were already told (startup check)
     }
 
+    // A saved private server. Any account can be assigned to one (Account.PrivateServerId).
+    public class PrivateServer
+    {
+        public string Id = Guid.NewGuid().ToString("N");
+        public string Name = "";
+        public string Link = "";            // as pasted (old ...?privateServerLinkCode=... or new share link)
+        public long PlaceId;
+        public string Code = "";            // link code used to join
+        public long ServerId;               // Roblox's private server id, when known (lets us look the owner up)
+        public string GameName = "";
+        public string OwnerAccountId = "";  // the saved account that owns this server (the one it was added with, or picked)
+        public string OwnerName = "";       // owner name pulled from Roblox, when available
+        public int Check;                   // last link check: 0 = never, 1 = joinable, 2 = not joinable
+        public string CheckText = "";
+        public long CheckTicks;
+    }
+
     public class AccountFile
     {
         public List<Account> Accounts = new List<Account>();
+        public List<PrivateServer> Servers = new List<PrivateServer>();
+    }
+
+    // The colours an account can be tagged with (shown as a stripe on its row / card).
+    public static class AccountColors
+    {
+        public static readonly string[] Names = new string[] { "Red", "Orange", "Yellow", "Green", "Teal", "Blue", "Purple", "Pink" };
+        static readonly Color[] Values = new Color[]
+        {
+            Color.FromArgb(226, 70, 70), Color.FromArgb(235, 130, 40), Color.FromArgb(230, 190, 40), Color.FromArgb(52, 168, 100),
+            Color.FromArgb(30, 190, 190), Color.FromArgb(70, 150, 235), Color.FromArgb(165, 105, 230), Color.FromArgb(225, 100, 160)
+        };
+        public static Color Get(string name)
+        {
+            for (int i = 0; i < Names.Length; i++) if (Names[i] == name) return Values[i];
+            return Color.Empty;
+        }
     }
 
     // Runtime-only info about an account (never saved).
@@ -168,6 +208,15 @@ namespace AltHub
         public bool CheckUpdates = true;            // check GitHub for a newer version at startup (notify only)
         public int WinW = 1300;
         public int WinH = 780;
+
+        // appearance / system
+        public string AccentHex = "";               // "" = default accent, otherwise #RRGGBB
+        public bool Tray = true;                    // tray icon
+        public bool CloseToTray = false;            // the close button hides the window to the tray
+        public bool MinToTray = false;              // minimizing hides the window to the tray
+        public bool Toasts = true;                  // Windows notifications for locked / kicked / crashed
+        public bool HotkeysLaunch = true;           // Ctrl+Alt+F5 = launch all, Ctrl+Alt+F6 = stop all
+        public bool RejoinSameServer = true;        // the watcher rejoins the server the account was in
 
         // Discord webhook alerts (opt-in). The URL is only ever sent to Discord.
         public bool Webhook = false;
@@ -336,13 +385,14 @@ namespace AltHub
         public long PlaceId;
         public string JobId = "";
         public string LinkCode = "";
+        public long ServerId;               // Roblox's private server id, when the link told us
         public long FollowUserId;
         public string FollowName = "";
 
         public LaunchSpec Copy()
         {
             LaunchSpec s = new LaunchSpec();
-            s.Kind = Kind; s.PlaceId = PlaceId; s.JobId = JobId; s.LinkCode = LinkCode;
+            s.Kind = Kind; s.PlaceId = PlaceId; s.JobId = JobId; s.LinkCode = LinkCode; s.ServerId = ServerId;
             s.FollowUserId = FollowUserId; s.FollowName = FollowName;
             return s;
         }

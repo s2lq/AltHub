@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Windows.Forms;
@@ -65,6 +66,7 @@ namespace AltHub
     public class GradientButton : Button
     {
         bool hover;
+        bool stopMode;
         public Color From = Color.FromArgb(124, 92, 252);
         public Color To = Color.FromArgb(40, 200, 235);
         public Color CornerColor = Color.Empty;     // what shows behind the rounded corners (default: parent's colour)
@@ -82,6 +84,7 @@ namespace AltHub
 
         public void SetStop(bool stop)
         {
+            stopMode = stop;
             if (stop)
             {
                 From = Color.FromArgb(235, 70, 90);
@@ -110,8 +113,8 @@ namespace AltHub
             g.Clear(!CornerColor.IsEmpty ? CornerColor : (Parent != null ? Parent.BackColor : Theme.Panel));
             if (Width < 4 || Height < 4) return;
             Rectangle r = new Rectangle(0, 0, Width - 1, Height - 1);
-            Color a = Enabled ? From : Theme.Border;
-            Color b = Enabled ? To : Theme.Border;
+            Color a = Enabled ? (stopMode ? From : Theme.Accent) : Theme.Border;
+            Color b = Enabled ? (stopMode ? To : Tint.Shift(Theme.Accent, 45)) : Theme.Border;
             if (hover && Enabled) { a = Lighten(a); b = Lighten(b); }
             using (GraphicsPath path = Shapes.Round(r, 9))
             using (LinearGradientBrush br = new LinearGradientBrush(r, a, b, LinearGradientMode.Horizontal))
@@ -196,11 +199,20 @@ namespace AltHub
         public event Action<AccountCard> LaunchClicked;
         public event Action<AccountCard> MenuClicked;
         public event Action<AccountCard, string> GameCommitted;
+        public event Action<AccountCard, string> PrivateChosen;     // server id, "" = none
 
         readonly Label lblName;
         readonly Label lblUser;
         readonly Label lblInfo;
         readonly RoundTextBox tbGame;
+        readonly DarkCombo cbPriv;
+        readonly Label lblNote;
+        List<string> privIds = new List<string>();
+        string privSig = "";
+        bool settingPriv;
+        string[] tagArr = new string[0];
+        string robuxText = "";
+        Color stripe = Color.Empty;
         string pill = "";
         Color pillColor = Color.Gray;
         int pillW = 80;
@@ -211,7 +223,7 @@ namespace AltHub
             Account = a;
             DoubleBuffered = true;
             ResizeRedraw = true;
-            Size = new Size(340, 186);
+            Size = new Size(340, 280);
             Margin = new Padding(0, 0, 10, 10);
             Tag = "";
 
@@ -234,12 +246,18 @@ namespace AltHub
             lblInfo.Location = new Point(84, 60);
             lblInfo.Size = new Size(200, 16);
 
+            lblNote = Ui.Lbl("", "muted");
+            lblNote.AutoSize = false;
+            lblNote.AutoEllipsis = true;
+            lblNote.Location = new Point(14, 104);
+            lblNote.Size = new Size(312, 16);
+
             Label cap = Ui.Lbl("Game for this account  (link or Place ID, optional)", "muted");
-            cap.Location = new Point(14, 86);
+            cap.Location = new Point(14, 128);
 
             tbGame = Ui.Txt(312, "");
             tbGame.Tag = "inset";
-            tbGame.Location = new Point(14, 104);
+            tbGame.Location = new Point(14, 146);
             tbGame.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             tbGame.Tip("Paste a roblox.com game link (or a private server link) or a Place ID. This account will join it when launched. Leave empty to use the Launch page.");
             tbGame.KeyDown += delegate(object s, KeyEventArgs e)
@@ -255,9 +273,24 @@ namespace AltHub
             MenuButton.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             MenuButton.Click += delegate { Action<AccountCard> h = MenuClicked; if (h != null) h(this); };
 
+            Label capP = Ui.Lbl("Private server  (optional)", "muted");
+            capP.Location = new Point(14, 182);
+            cbPriv = new DarkCombo();
+            cbPriv.Width = 312;
+            cbPriv.Location = new Point(14, 200);
+            cbPriv.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            Ui.Tips.SetToolTip(cbPriv, "The private server this account joins when launched. Manage the list on the Private tab.");
+            cbPriv.SelectedIndexChanged += delegate
+            {
+                if (settingPriv) return;
+                Action<AccountCard, string> h = PrivateChosen;
+                int i = cbPriv.SelectedIndex;
+                if (h != null && i >= 0) h(this, i == 0 ? "" : privIds[i - 1]);
+            };
+
             LaunchButton = new GradientButton();
             LaunchButton.Text = "Launch";
-            LaunchButton.Location = new Point(14, 138);
+            LaunchButton.Location = new Point(14, 234);
             LaunchButton.Size = new Size(312, 36);
             LaunchButton.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             LaunchButton.Click += delegate { Action<AccountCard> h = LaunchClicked; if (h != null) h(this); };
@@ -266,6 +299,9 @@ namespace AltHub
             Controls.Add(lblUser);
             Controls.Add(lblInfo);
             Controls.Add(cap);
+            Controls.Add(lblNote);
+            Controls.Add(capP);
+            Controls.Add(cbPriv);
             Controls.Add(tbGame);
             Controls.Add(MenuButton);
             Controls.Add(LaunchButton);
@@ -275,6 +311,40 @@ namespace AltHub
             lblUser.Click += OnAnyClick;
             lblInfo.Click += OnAnyClick;
             cap.Click += OnAnyClick;
+            capP.Click += OnAnyClick;
+            lblNote.Click += OnAnyClick;
+        }
+
+        // Tags, Robux, the note, the colour stripe and the private server drop-down.
+        public void SetExtras(string tags, string robux, string note, Color color, List<string> ids, List<string> names, string selectedId)
+        {
+            string[] ta = string.IsNullOrEmpty(tags) ? new string[0] : tags.Split(',');
+            bool changed = !string.Join("|", ta).Equals(string.Join("|", tagArr)) || robux != robuxText || color != stripe;
+            tagArr = ta; robuxText = robux; stripe = color;
+            lblNote.Text = string.IsNullOrEmpty(note) ? "" : "\U0001F4DD  " + note;
+
+            string sig = string.Join("|", ids.ToArray()) + "#" + string.Join("|", names.ToArray());
+            if (sig != privSig && !cbPriv.DroppedDown)
+            {
+                settingPriv = true;
+                privIds = new List<string>(ids);
+                privSig = sig;
+                cbPriv.Items.Clear();
+                cbPriv.Items.Add("(none)");
+                foreach (string n in names) cbPriv.Items.Add(n);
+                settingPriv = false;
+            }
+            if (!cbPriv.DroppedDown)
+            {
+                int want = string.IsNullOrEmpty(selectedId) ? 0 : privIds.IndexOf(selectedId) + 1;
+                if (want >= 0 && cbPriv.SelectedIndex != want)
+                {
+                    settingPriv = true;
+                    cbPriv.SelectedIndex = want;
+                    settingPriv = false;
+                }
+            }
+            if (changed) Invalidate();
         }
 
         void OnAnyClick(object sender, EventArgs e)
@@ -341,6 +411,31 @@ namespace AltHub
                 using (Pen pen = new Pen(Selected ? Theme.Accent : Theme.Border, Selected ? 2f : 1f)) g.DrawPath(pen, path);
             }
             Shapes.Avatar(g, Account, new Rectangle(14, 14, 60, 60));
+
+            if (!stripe.IsEmpty)
+                using (GraphicsPath sp = Shapes.Round(new Rectangle(0, 20, 6, Height - 40), 3))
+                using (SolidBrush sb = new SolidBrush(stripe)) g.FillPath(sb, sp);
+
+            // tag chips on the left, Robux on the right
+            int tx = 14;
+            TextFormatFlags cf = TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter | TextFormatFlags.NoPrefix | TextFormatFlags.NoPadding;
+            int rw = robuxText.Length == 0 ? 0 : TextRenderer.MeasureText(robuxText, Theme.Small).Width + 4;
+            foreach (string t in tagArr)
+            {
+                int w = TextRenderer.MeasureText(g, t, Theme.Small, new Size(1000, 20), cf).Width + 16;
+                if (tx + w > Width - 14 - rw - 6) break;
+                Rectangle cr = new Rectangle(tx, 82, w, 18);
+                using (GraphicsPath cp = Shapes.Round(cr, 8))
+                {
+                    using (SolidBrush b = new SolidBrush(Theme.Bg)) g.FillPath(b, cp);
+                    using (Pen pen = new Pen(Theme.Border)) g.DrawPath(pen, cp);
+                }
+                TextRenderer.DrawText(g, t, Theme.Small, cr, Theme.Text, cf);
+                tx += w + 5;
+            }
+            if (rw > 0)
+                TextRenderer.DrawText(g, robuxText, Theme.Small, new Rectangle(Width - 14 - rw, 82, rw, 18), Theme.Muted,
+                    TextFormatFlags.Right | TextFormatFlags.VerticalCenter | TextFormatFlags.NoPrefix | TextFormatFlags.NoPadding);
 
             Rectangle pr = new Rectangle(Width - 14 - 34 - 8 - pillW, 15, pillW, 24);
             using (GraphicsPath pp = Shapes.Round(pr, 12))

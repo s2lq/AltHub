@@ -39,6 +39,8 @@ namespace AltHub
         const int HK_ARRANGE = 9001;
         const int HK_PREV = 9002;
         const int HK_NEXT = 9003;
+        const int HK_LAUNCHALL = 9004;
+        const int HK_STOPALL = 9005;
 
         void BuildLayoutPage()
         {
@@ -635,13 +637,22 @@ namespace AltHub
         void RegisterHotkeys()
         {
             UnregisterHotkeys();
-            if (!Store.Settings.Layout.Hotkeys || !IsHandleCreated) return;
+            if (!IsHandleCreated) return;
             uint mod = Native.MOD_CONTROL | Native.MOD_ALT | Native.MOD_NOREPEAT;
-            bool a = Native.RegisterHotKey(Handle, HK_ARRANGE, mod, 0x78);
-            bool b = Native.RegisterHotKey(Handle, HK_PREV, mod, 0x79);
-            bool c = Native.RegisterHotKey(Handle, HK_NEXT, mod, 0x7A);
+            bool ok = true;
+            if (Store.Settings.Layout.Hotkeys)
+            {
+                ok &= Native.RegisterHotKey(Handle, HK_ARRANGE, mod, 0x78);
+                ok &= Native.RegisterHotKey(Handle, HK_PREV, mod, 0x79);
+                ok &= Native.RegisterHotKey(Handle, HK_NEXT, mod, 0x7A);
+            }
+            if (Store.Settings.HotkeysLaunch)
+            {
+                ok &= Native.RegisterHotKey(Handle, HK_LAUNCHALL, mod, 0x74);   // F5
+                ok &= Native.RegisterHotKey(Handle, HK_STOPALL, mod, 0x75);     // F6
+            }
             hotkeysRegistered = true;
-            if (!a || !b || !c) AddLog("Some hotkeys could not be registered (another program already uses them).");
+            if (!ok) AddLog("Some hotkeys could not be registered (another program already uses them).");
         }
 
         void UnregisterHotkeys()
@@ -650,6 +661,8 @@ namespace AltHub
             Native.UnregisterHotKey(Handle, HK_ARRANGE);
             Native.UnregisterHotKey(Handle, HK_PREV);
             Native.UnregisterHotKey(Handle, HK_NEXT);
+            Native.UnregisterHotKey(Handle, HK_LAUNCHALL);
+            Native.UnregisterHotKey(Handle, HK_STOPALL);
             hotkeysRegistered = false;
         }
 
@@ -668,6 +681,8 @@ namespace AltHub
                 if (id == HK_ARRANGE) ArrangeNow();
                 else if (id == HK_PREV) FocusStep(-1);
                 else if (id == HK_NEXT) FocusStep(1);
+                else if (id == HK_LAUNCHALL) TrayLaunchAll();
+                else if (id == HK_STOPALL) StopAll();
             }
             base.WndProc(ref m);
         }
