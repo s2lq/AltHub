@@ -28,6 +28,7 @@ namespace AltHub
         public string Kind = "";        // "", "primary", "danger", "nav"
         public bool Active;             // highlighted state of nav / toggle buttons
         public bool LeftAlign;          // left-align the text (sidebar items) instead of centering
+        public string Icon = "";        // optional vector icon (see Icons) drawn before the text
         bool hover;
         bool pressed;
         Color curFill, curText, curBorder;   // smoothly animated toward their target each frame
@@ -47,7 +48,7 @@ namespace AltHub
         public void FitText(int minWidth)
         {
             Size ts = TextRenderer.MeasureText(Text, Font);
-            Width = Math.Max(minWidth, ts.Width + 28);
+            Width = Math.Max(minWidth, ts.Width + 28 + (Icon.Length > 0 ? 24 : 0));
         }
 
         protected override void OnMouseEnter(EventArgs e) { hover = true; Invalidate(); base.OnMouseEnter(e); }
@@ -109,7 +110,16 @@ namespace AltHub
             }
             Rectangle tr = r;
             TextFormatFlags flags = TextFormatFlags.VerticalCenter | TextFormatFlags.SingleLine | TextFormatFlags.NoPrefix | TextFormatFlags.EndEllipsis;
-            if (LeftAlign) { tr = new Rectangle(r.Left + 12, r.Top, r.Width - 16, r.Height); flags |= TextFormatFlags.Left; }
+            if (Icon.Length > 0)
+            {
+                int tw = TextRenderer.MeasureText(g, Text, Font, new Size(1000, 40), TextFormatFlags.NoPrefix | TextFormatFlags.NoPadding).Width;
+                int total = 16 + 8 + tw;
+                int x0 = LeftAlign ? r.Left + 12 : r.Left + Math.Max(8, (r.Width - total) / 2);
+                Icons.Draw(g, Icon, new Rectangle(x0, r.Top + (r.Height - 16) / 2, 16, 16), curText);
+                tr = new Rectangle(x0 + 24, r.Top, Math.Max(1, r.Right - x0 - 24 - 6), r.Height);
+                flags |= TextFormatFlags.Left;
+            }
+            else if (LeftAlign) { tr = new Rectangle(r.Left + 12, r.Top, r.Width - 16, r.Height); flags |= TextFormatFlags.Left; }
             else flags |= TextFormatFlags.HorizontalCenter;
             TextRenderer.DrawText(g, Text, Font, tr, curText, flags);
 
@@ -494,7 +504,7 @@ namespace AltHub
         static bool Wanted(Control c)
         {
             if (c is Form) return false;
-            if (c is ListView || c is NumericUpDown) return true;
+            if (c is ListView || c is NumericUpDown || c is ComboBox) return true;
             TextBox tb = c as TextBox;
             if (tb != null) return tb.Multiline;
             if (c.GetType().Name == "UpDownButtons") return true;
@@ -516,7 +526,7 @@ namespace AltHub
 
         static void Set(Control c)
         {
-            try { SetWindowTheme(c.Handle, Theme.Dark ? "DarkMode_Explorer" : "Explorer", null); }
+            try { SetWindowTheme(c.Handle, c is ComboBox ? (Theme.Dark ? "DarkMode_CFD" : "CFD") : (Theme.Dark ? "DarkMode_Explorer" : "Explorer"), null); }
             catch (Exception) { }
         }
     }

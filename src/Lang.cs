@@ -71,15 +71,16 @@ namespace AltHub
         static readonly Dictionary<string, string> Dutch = new Dictionary<string, string>
         {
             // navigation (the buttons grow to fit, so Dutch may be a little longer)
-            { "\U0001F680  Launch", "\U0001F680  Starten" },
-            { "\U0001F310  Servers", "\U0001F310  Servers" },
-            { "\U0001FA9F  Layout", "\U0001FA9F  Indeling" },
-            { "\U0001F4CA  Monitor", "\U0001F4CA  Monitor" },
-            { "\U0001F4BE  Presets", "\U0001F4BE  Presets" },
-            { "⚡  Perf", "⚡  Prestaties" },
-            { "⚙  Settings", "⚙  Opties" },
-            { "❓  Help", "❓  Help" },
-            { "\U0001F3AC  Macro", "\U0001F3AC  Macro" },
+            { "Home", "Home" },
+            { "Launch", "Starten" },
+            { "Private", "Privé" },
+            { "Macro", "Macro" },
+            { "Servers", "Servers" },
+            { "Layout", "Indeling" },
+            { "Presets", "Presets" },
+            { "Perf", "Prestaties" },
+            { "Settings", "Opties" },
+            { "Help", "Help" },
             // top bar
             { "Multi-account launcher", "Multi-account launcher" },
             { "Running", "Actief" },

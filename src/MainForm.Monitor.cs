@@ -181,7 +181,7 @@ namespace AltHub
         {
             Hwnd = w.Hwnd;
             string nm = string.IsNullOrEmpty(w.Account) ? ("PID " + w.Pid) : w.Account;
-            name.Text = nm + (active && maxAlts ? "   ▶ playing" : "");
+            name.Text = nm + (active && maxAlts ? "   (playing)" : "");
             name.ForeColor = Theme.Text;
 
             string st;

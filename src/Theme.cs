@@ -120,7 +120,7 @@ namespace AltHub
             {
                 c.BackColor = tag == "log" ? Panel : Panel2;
                 c.ForeColor = Text;
-                if (!(c.Parent is NumericUpDown)) ((TextBox)c).BorderStyle = BorderStyle.FixedSingle;
+                if (!(c.Parent is NumericUpDown)) ((TextBox)c).BorderStyle = ((TextBox)c).Multiline ? BorderStyle.None : BorderStyle.FixedSingle;
                 if (((TextBox)c).Multiline) Rounder.Apply(c, 8);
             }
             else if (c is ComboBox)
@@ -133,6 +133,7 @@ namespace AltHub
             {
                 c.BackColor = Panel2;
                 c.ForeColor = Text;
+                ((NumericUpDown)c).BorderStyle = BorderStyle.FixedSingle;
                 Rounder.Apply(c, 6);
             }
             else if (c is Button)

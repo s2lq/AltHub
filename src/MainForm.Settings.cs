@@ -346,7 +346,7 @@ namespace AltHub
                     "Discord alerts", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 return;
             }
-            Webhook.SendTo(url, "Test message", "AltHub is connected to this channel. \U0001F680", Webhook.Blurple);
+            Webhook.SendTo(url, "Test message", "AltHub is connected to this channel.", Webhook.Blurple);
             AddLog("Sent a test message to your Discord webhook. Check the channel.");
         }
 
