@@ -4,16 +4,16 @@ using System.IO.Pipes;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace RobloxMultiHub
+namespace AltHub
 {
-    // Discord Rich Presence: shows "Playing Roblox MultiHub" on your Discord profile while the app runs,
-    // with how many accounts are running, a timer, and "Get Roblox MultiHub" / "Join Discord" buttons.
+    // Discord Rich Presence: shows "Playing AltHub" on your Discord profile while the app runs,
+    // with how many accounts are running, a timer, and "Get AltHub" / "Based on Roblox MultiHub" buttons.
     // It talks to the Discord app already on your PC over its local IPC pipe - no bot token, no library,
     // and nothing leaves your PC except to Discord itself. Needs a Discord Application ID (Settings).
     public static class DiscordRpc
     {
-        const string DownloadUrl = "https://github.com/Roblox-MultiHub/Roblox-MultiHub/raw/main/download/RobloxMultiHub.zip";
-        const string DiscordInvite = "https://discord.gg/TCrVyjYhHr";
+        const string DownloadUrl = "https://github.com/s2lq/AltHub/releases/latest";
+        const string UpstreamUrl = "https://github.com/Roblox-MultiHub/Roblox-MultiHub";
 
         static NamedPipeClientStream pipe;
         static bool ready;
@@ -60,7 +60,7 @@ namespace RobloxMultiHub
             string state = saved > 0 ? (saved + (saved == 1 ? " account saved" : " accounts saved")) : "Free & open source";
 
             Dictionary<string, object> ts = new Dictionary<string, object>(); ts["start"] = startEpoch;
-            Dictionary<string, object> assets = new Dictionary<string, object>(); assets["large_image"] = "logo"; assets["large_text"] = "Roblox MultiHub";
+            Dictionary<string, object> assets = new Dictionary<string, object>(); assets["large_image"] = "logo"; assets["large_text"] = "AltHub";
             Dictionary<string, object> activity = new Dictionary<string, object>();
             activity["details"] = details;
             activity["state"] = state;
@@ -68,8 +68,8 @@ namespace RobloxMultiHub
             activity["assets"] = assets;
             activity["buttons"] = new object[]
             {
-                new Dictionary<string, object> { { "label", "Get Roblox MultiHub" }, { "url", DownloadUrl } },
-                new Dictionary<string, object> { { "label", "Join Discord" }, { "url", DiscordInvite } }
+                new Dictionary<string, object> { { "label", "Get AltHub" }, { "url", DownloadUrl } },
+                new Dictionary<string, object> { { "label", "Based on Roblox MultiHub" }, { "url", UpstreamUrl } }
             };
             Dictionary<string, object> args = new Dictionary<string, object>();
             args["pid"] = System.Diagnostics.Process.GetCurrentProcess().Id;

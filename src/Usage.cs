@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 
-namespace RobloxMultiHub
+namespace AltHub
 {
     public class UsageSample
     {

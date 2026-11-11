@@ -6,13 +6,13 @@ using System.Linq;
 using System.Windows.Forms;
 using Microsoft.Win32;
 
-namespace RobloxMultiHub
+namespace AltHub
 {
     public partial class MainForm
     {
         // ===== Links =====  The Support section buttons open these.
         const string DonateUrl = "https://buymeacoffee.com/multihub";
-        const string DiscordUrl = "https://discord.gg/TCrVyjYhHr";
+        const string UpstreamUrl = "https://github.com/Roblox-MultiHub/Roblox-MultiHub";
 
         CheckBox chkMulti;
         ComboBox cbMethod;
@@ -79,7 +79,7 @@ namespace RobloxMultiHub
             p.Opt("How often the status is refreshed.",
                 "Lower values show changes faster but use more requests; Roblox may rate-limit very frequent checks.",
                 Ui.Fld("Refresh every (seconds)", 190), numPresence);
-            chkCheckLogins = Ui.Chk("Check all saved logins when MultiHub starts", S.CheckLoginsAtStartup, null);
+            chkCheckLogins = Ui.Chk("Check all saved logins when AltHub starts", S.CheckLoginsAtStartup, null);
             p.Opt("Tells you which accounts Roblox signed out since last time.",
                 "A few seconds after start-up every saved login is tested once (a short pause between accounts, so Roblox does not rate-limit you). Accounts whose login stopped working since the previous check - password changed, logged out everywhere, or locked / reset by Roblox - are listed in one popup, so you know which ones to log in with again. Accounts you were already told about only appear in the activity log.",
                 chkCheckLogins);
@@ -117,7 +117,7 @@ namespace RobloxMultiHub
             p.Section("Discord alerts");
             chkWebhook = Ui.Chk("Send alerts to a Discord webhook", S.Webhook, null);
             p.Opt("Posts short messages to a channel you choose.",
-                "OFF by default. Create a webhook in your Discord server (Server settings - Integrations - Webhooks - New Webhook - Copy URL) and paste it below. MultiHub then posts short alerts to that channel. The URL is only ever sent to Discord and is stored locally; treat it like a password - anyone with it can post to that channel.",
+                "OFF by default. Create a webhook in your Discord server (Server settings - Integrations - Webhooks - New Webhook - Copy URL) and paste it below. AltHub then posts short alerts to that channel. The URL is only ever sent to Discord and is stored locally; treat it like a password - anyone with it can post to that channel.",
                 chkWebhook);
             tbWebhook = Ui.Txt(330, S.WebhookUrl);
             tbWebhook.UseSystemPasswordChar = true;
@@ -127,7 +127,7 @@ namespace RobloxMultiHub
                 Ui.Btn("Send a test message", 170, delegate { SendWebhookTest(); }, ""));
             chkWebhookCrash = Ui.Chk("A client closed unexpectedly (crash / kick)", S.WebhookCrash, null);
             p.Opt("When a window this app started disappears on its own.",
-                "Posted when a Roblox window that MultiHub launched closes without you asking - a crash, a kick, or a disconnect. Windows you close yourself are never reported.",
+                "Posted when a Roblox window that AltHub launched closes without you asking - a crash, a kick, or a disconnect. Windows you close yourself are never reported.",
                 chkWebhookCrash);
             chkWebhookRelaunch = Ui.Chk("The watcher brought a client back", S.WebhookRelaunch, null);
             p.Opt("When auto-relaunch starts an account again.",
@@ -143,13 +143,13 @@ namespace RobloxMultiHub
                 chkWebhookLocked);
 
             p.Section("Discord status (Rich Presence)");
-            chkDiscordRpc = Ui.Chk("Show \"Playing Roblox MultiHub\" on my Discord profile", S.DiscordRpc, null);
+            chkDiscordRpc = Ui.Chk("Show \"Playing AltHub\" on my Discord profile", S.DiscordRpc, null);
             p.Opt("Shows the app on your Discord while it runs, with how many accounts are running, a timer and buttons.",
-                "Like other apps that show \"Playing ...\" on your profile. It needs a Discord Application ID (below). While it is on, your Discord shows Playing Roblox MultiHub, how many accounts are running, how long it has been open, and two buttons (Get Roblox MultiHub / Join Discord) that other people can click. It talks only to the Discord app on your own PC - no bot token, nothing is uploaded. Needs the Discord desktop app to be running.",
+                "Like other apps that show \"Playing ...\" on your profile. It needs a Discord Application ID (below). While it is on, your Discord shows Playing AltHub, how many accounts are running, how long it has been open, and two buttons (Get AltHub / Join Discord) that other people can click. It talks only to the Discord app on your own PC - no bot token, nothing is uploaded. Needs the Discord desktop app to be running.",
                 chkDiscordRpc);
             tbDiscordAppId = Ui.Txt(230, S.DiscordAppId);
             p.Opt("Your Discord Application ID (a number). Required.",
-                "Create one for free: open the Discord Developer Portal (discord.com/developers/applications), click New Application, name it exactly \"Roblox MultiHub\" (that name is what shows after \"Playing\"), open it and copy the Application ID. Paste it here. For the little logo image, upload a picture under Rich Presence > Art Assets named exactly \"logo\". The ID is public - it is safe to share, unlike a bot token.",
+                "Create one for free: open the Discord Developer Portal (discord.com/developers/applications), click New Application, name it exactly \"AltHub\" (that name is what shows after \"Playing\"), open it and copy the Application ID. Paste it here. For the little logo image, upload a picture under Rich Presence > Art Assets named exactly \"logo\". The ID is public - it is safe to share, unlike a bot token.",
                 Ui.Fld("Application ID", 120), tbDiscordAppId);
 
             p.Section("Security");
@@ -178,13 +178,13 @@ namespace RobloxMultiHub
             p.Opt("Interface language.",
                 "English and Dutch are built in; anything not translated stays in English. You can add more languages by dropping a file  lang\\<code>.json  (a JSON object of { \"English text\": \"translation\" }) into the data folder - use 'Open data folder' above. Changing the language restarts the app.",
                 Ui.Fld("Language", 120), cbLang);
-            chkStartup = Ui.Chk("Start MultiHub with Windows (minimized)", S.StartWithWindows, null);
+            chkStartup = Ui.Chk("Start AltHub with Windows (minimized)", S.StartWithWindows, null);
             p.Opt("Starts this app when you log in to Windows.",
                 "Useful with multi-instance: if this app starts before Roblox does, it always wins the lock. Adds a normal Windows startup entry that you can remove here again.",
                 chkStartup);
 
             p.Section("Updates");
-            chkCheckUpdates = Ui.Chk("Check for a new version when MultiHub starts", S.CheckUpdates, null);
+            chkCheckUpdates = Ui.Chk("Check for a new version when AltHub starts", S.CheckUpdates, null);
             p.Opt("Just tells you when a newer version is out - it never downloads anything by itself.",
                 "When the app starts it asks GitHub once what the latest released version is. If that is newer than the version you have, you get a short notice with a button to open the download page. It only reads a version number; it never downloads or replaces the app on its own, so it is completely safe. Turn it off to never check.",
                 chkCheckUpdates);
@@ -199,17 +199,17 @@ namespace RobloxMultiHub
                 Ui.Fld("Place launcher URL", 130), tbLauncherUrl,
                 Ui.Btn("Reset", 70, delegate { tbLauncherUrl.Text = "https://assetgame.roblox.com/game/PlaceLauncher.ashx"; }, ""));
 
-            p.Section("Support this project");
-            p.Opt("Roblox MultiHub is free - a donation keeps it going. Thank you!",
-                "This tool is built by our team in a lot of free time and stays completely free. If it saves you time and you want to say thanks, a small donation is hugely appreciated - it is never required and nothing is locked behind it. The button opens the donation page in your browser.",
-                Ui.Btn("Buy us a coffee", 170, delegate { OpenDonate(); }, "primary"));
-            p.Opt("News, updates, help and tickets - come say hi.",
-                "Opens the Roblox MultiHub Discord server in your browser: announcements, update logs, a general chat and a support ticket system if you need help.",
-                Ui.Btn("Join our Discord", 150, delegate { OpenLink(DiscordUrl, "Discord"); }, ""));
+            p.Section("Credits");
+            p.Opt("AltHub is free and open source, based on Roblox MultiHub.",
+                "AltHub is a fork of Roblox MultiHub by the Roblox-MultiHub contributors, released under the GPL-3.0 license. All the core features come from their work - thank you! If you like it, please support the original authors.",
+                Ui.Btn("Support the original author", 210, delegate { OpenDonate(); }, "primary"));
+            p.Opt("The original project on GitHub.",
+                "Opens the original Roblox MultiHub repository in your browser.",
+                Ui.Btn("Original Roblox MultiHub", 210, delegate { OpenLink(UpstreamUrl, "GitHub"); }, ""));
 
             p.Section("About");
             p.Hint("Independent project - not affiliated with Roblox.",
-                "Roblox MultiHub is an independent project. It is not affiliated with Roblox Corporation, Roblox Account Manager or OpenMultiBoxing. The feature set is modelled on Roblox Account Manager (multi-account launching, groups, presence, server browser...) and the window layout on OpenMultiBoxing; no code from either project is used.");
+                "AltHub is an independent fork of Roblox MultiHub (GPL-3.0) and is not affiliated with Roblox Corporation, Roblox Account Manager or OpenMultiBoxing. The feature set is modelled on Roblox Account Manager (multi-account launching, groups, presence, server browser...) and the window layout on OpenMultiBoxing; no code from either project is used.");
 
             // ---------- wiring ----------
             EventHandler changed = delegate { OnSettingChanged(); };
@@ -342,7 +342,7 @@ namespace RobloxMultiHub
                     "Discord alerts", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 return;
             }
-            Webhook.SendTo(url, "Test message", "Roblox MultiHub is connected to this channel. \U0001F680", Webhook.Blurple);
+            Webhook.SendTo(url, "Test message", "AltHub is connected to this channel. \U0001F680", Webhook.Blurple);
             AddLog("Sent a test message to your Discord webhook. Check the channel.");
         }
 
@@ -401,7 +401,7 @@ namespace RobloxMultiHub
             if (code == Store.Settings.Language) return;
             Store.Settings.Language = code;
             Store.SaveSettings();
-            if (MessageBox.Show(this, "The language is applied after a restart.\r\nRestart Roblox MultiHub now?",
+            if (MessageBox.Show(this, "The language is applied after a restart.\r\nRestart AltHub now?",
                 "Language", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
             {
                 Application.Restart();
@@ -415,8 +415,8 @@ namespace RobloxMultiHub
                 using (RegistryKey k = Registry.CurrentUser.OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\Run", true))
                 {
                     if (k == null) return;
-                    if (on) k.SetValue("RobloxMultiHub", "\"" + Application.ExecutablePath + "\" --minimized");
-                    else k.DeleteValue("RobloxMultiHub", false);
+                    if (on) k.SetValue("AltHub", "\"" + Application.ExecutablePath + "\" --minimized");
+                    else k.DeleteValue("AltHub", false);
                 }
             }
             catch (Exception ex) { AddLog("Could not change the startup entry: " + ex.Message); }
@@ -483,7 +483,7 @@ namespace RobloxMultiHub
                 if (IsDisposed || !u.Available) return;
                 AddLog("Update available: v" + u.Latest + " (you have v" + u.Current + ").");
                 if (MessageBox.Show(this,
-                        "A newer version of Roblox MultiHub is available:\r\n\r\n" +
+                        "A newer version of AltHub is available:\r\n\r\n" +
                         "    v" + u.Latest + "   (you have v" + u.Current + ")\r\n\r\n" +
                         "Open the download page now? Nothing is downloaded automatically.",
                         "Update available", MessageBoxButtons.YesNo, MessageBoxIcon.Information) == DialogResult.Yes)

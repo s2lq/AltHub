@@ -2,7 +2,7 @@ using System;
 using System.Threading;
 using System.Windows.Forms;
 
-namespace RobloxMultiHub
+namespace AltHub
 {
     static class Program
     {
@@ -35,10 +35,10 @@ namespace RobloxMultiHub
 
             // Two copies of this app would fight over the Roblox lock, so only allow one.
             bool created;
-            single = new Mutex(true, "RobloxMultiHub_SingleInstance_v1", out created);
+            single = new Mutex(true, "AltHub_SingleInstance_v1", out created);
             if (!created)
             {
-                MessageBox.Show("Roblox MultiHub is already running. Look for it in your taskbar.", "Roblox MultiHub", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show("AltHub is already running. Look for it in your taskbar.", "AltHub", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 return;
             }
 
@@ -61,17 +61,17 @@ namespace RobloxMultiHub
                 {
                     while (true)
                     {
-                        string pw = Dialogs.AskPassword(null, "Roblox MultiHub - unlock", "Enter the password of your accounts file:", false);
+                        string pw = Dialogs.AskPassword(null, "AltHub - unlock", "Enter the password of your accounts file:", false);
                         if (pw == null) return false;
                         string err = Store.LoadAccounts(pw);
                         if (err == null) return true;
-                        MessageBox.Show(err, "Roblox MultiHub", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        MessageBox.Show(err, "AltHub", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     }
                 }
                 string problem = Store.LoadAccounts(null);
                 if (problem == null) return true;
                 DialogResult r = MessageBox.Show(problem + "\r\n\r\nYES = start with an empty account list (the old file is kept as accounts.dat.old)\r\nNO = quit",
-                    "Roblox MultiHub", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+                    "AltHub", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
                 if (r == DialogResult.Yes) { Store.StartFresh(); return true; }
                 return false;
             }
@@ -89,7 +89,7 @@ namespace RobloxMultiHub
                 if (ex != null) Log.Error("UNHANDLED", ex);
                 MessageBox.Show("Something went wrong:\r\n\r\n" + (ex == null ? "unknown error" : ex.Message)
                     + "\r\n\r\nDetails are in log.txt (Settings > Open data folder). The app keeps running if it can.",
-                    "Roblox MultiHub", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    "AltHub", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             catch (Exception) { }
         }

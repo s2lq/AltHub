@@ -5,7 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace RobloxMultiHub
+namespace AltHub
 {
     // Profile pictures: memory cache -> disk cache (3 days) -> Roblox thumbnail API.
     public static class Avatars

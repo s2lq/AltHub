@@ -5,7 +5,7 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 
-namespace RobloxMultiHub
+namespace AltHub
 {
     // Accounts are always encrypted on disk:
     //   mode 'D' = Windows DPAPI (tied to your Windows user, no password to remember)
@@ -28,13 +28,26 @@ namespace RobloxMultiHub
         // an administrator's password) and must still use YOUR data folder.
         public static void Init(string dataDir)
         {
-            Dir = !string.IsNullOrEmpty(dataDir) ? dataDir : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "RobloxMultiHub");
+            Dir = !string.IsNullOrEmpty(dataDir) ? dataDir : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "AltHub");
+            if (string.IsNullOrEmpty(dataDir) && !Directory.Exists(Dir))
+            {
+                // First run after the rename: bring over the data of the original Roblox MultiHub, if it is there.
+                string old = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "RobloxMultiHub");
+                try { if (Directory.Exists(old)) CopyDir(old, Dir); } catch (Exception) { }
+            }
             Directory.CreateDirectory(Dir);
             BackupDir = Path.Combine(Dir, "Backups");
             SettingsPath = Path.Combine(Dir, "settings.json");
             AccountsPath = Path.Combine(Dir, "accounts.dat");
             Log.Init(Dir);
             LoadSettings();
+        }
+
+        static void CopyDir(string from, string to)
+        {
+            Directory.CreateDirectory(to);
+            foreach (string f in Directory.GetFiles(from)) File.Copy(f, Path.Combine(to, Path.GetFileName(f)), false);
+            foreach (string d in Directory.GetDirectories(from)) CopyDir(d, Path.Combine(to, Path.GetFileName(d)));
         }
 
         public static void LoadSettings()

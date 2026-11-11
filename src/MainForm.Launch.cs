@@ -7,7 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace RobloxMultiHub
+namespace AltHub
 {
     public partial class MainForm
     {
@@ -96,6 +96,11 @@ namespace RobloxMultiHub
             p.Opt("Remember this Place / Job on the selected accounts.",
                 "Copies the Place ID (and Job ID, if 'specific server' is chosen) above into the game field of every selected account, so 'Launch selected' can send every account to its own favourite game later.",
                 Ui.Btn("Save to selected accounts", 200, delegate { SaveToSelected(); }, ""));
+
+            p.Opt("Give each account its own private server.",
+                "Select ONE account, paste its private server link above, press 'Save private server to selected', then repeat for the next account. Every account remembers its own link and joins it on 'Launch', 'Launch selected' and 'Launch all' - even if the Launch page is set to a normal game. Works with old (...?privateServerLinkCode=...) and new share links. You can also edit it in 'Edit account'.",
+                Ui.Btn("Save private server to selected", 230, delegate { SavePrivateToSelected(); }, ""),
+                Ui.Btn("Remove", 90, delegate { ClearPrivateOnSelected(); }, ""));
 
             p.Section("Go");
             btnLaunch = Ui.Btn("Launch selected", 150, delegate { LaunchSelected(); }, "primary");
@@ -302,9 +307,76 @@ namespace RobloxMultiHub
             return s;
         }
 
+        // The private server saved on one account, or null if none.
+        static LaunchSpec PrivateSpec(Account acc)
+        {
+            if (acc.PrivatePlaceId <= 0 || string.IsNullOrEmpty(acc.PrivateCode)) return null;
+            LaunchSpec s = new LaunchSpec();
+            s.Kind = "Private";
+            s.PlaceId = acc.PrivatePlaceId;
+            s.LinkCode = acc.PrivateCode;
+            return s;
+        }
+
+        // Saves (or, with an empty link, clears) the private server of one account. Share links are resolved with
+        // that account's own cookie, so the account must be allowed to use the server.
+        async Task<bool> SetPrivateLink(Account a, string link)
+        {
+            link = (link ?? "").Trim();
+            if (link.Length == 0)
+            {
+                a.PrivateLink = ""; a.PrivatePlaceId = 0; a.PrivateCode = "";
+                return true;
+            }
+            long pid; string code;
+            if (!Api.ParseOldPrivate(link, out pid, out code))
+            {
+                Match share = Regex.Match(link, @"[?&]code=([A-Za-z0-9]+)");
+                if (!share.Success || link.IndexOf("share", StringComparison.OrdinalIgnoreCase) < 0)
+                {
+                    AddLog("That does not look like a private server link.");
+                    return false;
+                }
+                LaunchSpec r = await Api.ResolveShare(share.Groups[1].Value, a.Cookie);
+                if (r == null)
+                {
+                    AddLog("Could not resolve the share link for " + AppState.Name(a) + ". That account must be allowed to use this private server.");
+                    return false;
+                }
+                pid = r.PlaceId; code = r.LinkCode;
+            }
+            a.PrivateLink = link; a.PrivatePlaceId = pid; a.PrivateCode = code;
+            return true;
+        }
+
+        async void SavePrivateToSelected()
+        {
+            List<Account> sel = SelectedAccounts();
+            if (sel.Count == 0) { AddLog("Select one or more accounts first."); return; }
+            string link = tbPrivate.Text.Trim();
+            if (link.Length == 0) { AddLog("Paste a private server link first."); return; }
+            int ok = 0;
+            foreach (Account a in sel) if (await SetPrivateLink(a, link)) ok++;
+            Store.SaveAccounts();
+            UpdateStatusCells();
+            AddLog("Saved the private server to " + ok + " of " + sel.Count + " account(s). Each account joins it whenever it is launched.");
+        }
+
+        void ClearPrivateOnSelected()
+        {
+            List<Account> sel = SelectedAccounts();
+            if (sel.Count == 0) { AddLog("Select one or more accounts first."); return; }
+            foreach (Account a in sel) { a.PrivateLink = ""; a.PrivatePlaceId = 0; a.PrivateCode = ""; }
+            Store.SaveAccounts();
+            UpdateStatusCells();
+            AddLog("Removed the saved private server from " + sel.Count + " account(s).");
+        }
+
         // The game stored on one account (card field / Edit dialog / "save to selected"), or null if none.
         LaunchSpec SavedSpec(Account acc)
         {
+            LaunchSpec ps = PrivateSpec(acc);
+            if (ps != null) return ps;
             string link = acc.GameLink ?? "";
             long pid = Util.ParsePlaceId(link);
             if (pid <= 0) pid = Util.ParsePlaceId(acc.SavedPlaceId);
@@ -321,6 +393,8 @@ namespace RobloxMultiHub
         // A saved game replaces the Launch page choice, but only if that choice is a normal game / server.
         LaunchSpec ApplySaved(Account acc, LaunchSpec spec)
         {
+            LaunchSpec ps = PrivateSpec(acc);
+            if (ps != null && spec.Kind != "Follow") return ps;     // this account's own private server always wins
             if (spec.Kind != "Game" && spec.Kind != "Job") return spec;
             LaunchSpec s = SavedSpec(acc);
             return s != null ? s : spec;

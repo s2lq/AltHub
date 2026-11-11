@@ -8,7 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace RobloxMultiHub
+namespace AltHub
 {
     public partial class MainForm : Form
     {
@@ -58,7 +58,7 @@ namespace RobloxMultiHub
         {
             startMinimized = minimized;
             Theme.Set(Store.Settings.Theme != "Light");
-            Text = "Roblox MultiHub";
+            Text = "AltHub";
             Font = Theme.Base;
             AutoScaleDimensions = new SizeF(96F, 96F);
             AutoScaleMode = AutoScaleMode.Dpi;
@@ -113,17 +113,12 @@ namespace RobloxMultiHub
             topBar.Dock = DockStyle.Fill;
             topBar.Tag = "card";
             topBar.Margin = Padding.Empty;
-            Label title = Ui.Lbl("Roblox MultiHub", "title");
+            Label title = Ui.Lbl("AltHub", "title");
             title.Location = new Point(18, 7);
             topBar.Controls.Add(title);
             Label sub = Ui.Lbl(Lang.T("Multi-account launcher"), "muted");
             sub.Location = new Point(21, 43);
             topBar.Controls.Add(sub);
-            DiscordIcon disc = new DiscordIcon();
-            disc.Location = new Point(sub.Right + 10, 41);
-            disc.Click += delegate { OpenLink(DiscordUrl, "Discord"); };
-            Ui.Tips.SetToolTip(disc, "Join our Discord - news, help and support tickets.");
-            topBar.Controls.Add(disc);
 
             statRun = new StatBlock(Lang.T("Running"), 140);
             statCpu = new StatBlock(Lang.T("Roblox CPU"), 160);
@@ -331,7 +326,7 @@ namespace RobloxMultiHub
             Panel page = NewPage("Home");
             page.AutoScroll = true;
 
-            Label title = Ui.Lbl("Welcome to Roblox MultiHub", "title");
+            Label title = Ui.Lbl("Welcome to AltHub", "title");
             title.Location = new Point(20, 20);
             page.Controls.Add(title);
 
@@ -602,13 +597,13 @@ namespace RobloxMultiHub
         void FirstRun()
         {
             if (Store.Settings.FirstRunDone) return;
-            string msg = "Welcome to Roblox MultiHub!\r\n\r\n"
+            string msg = "Welcome to AltHub!\r\n\r\n"
                 + "To run several Roblox accounts at once the app has to hold Roblox's 'single instance' lock objects "
                 + "(ROBLOX_singletonMutex / ROBLOX_singletonEvent). Nothing is injected into Roblox or modified.\r\n\r\n"
                 + "Please know: Roblox's anti-cheat team has said that running multiple clients may be treated as abusive behaviour, "
                 + "and Roblox can change the client at any time. You use this at your own risk, with your own accounts.\r\n\r\n"
                 + "Turn multi-instance ON now?  (You can change this any time in Settings.)";
-            DialogResult r = MessageBox.Show(this, msg, "Roblox MultiHub - first run", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+            DialogResult r = MessageBox.Show(this, msg, "AltHub - first run", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
             Store.Settings.FirstRunDone = true;
             Store.Settings.MultiInstance = r == DialogResult.Yes;
             Store.SaveSettings();
@@ -1444,7 +1439,7 @@ namespace RobloxMultiHub
             List<string> cookies = Util.ExtractCookies(raw);
             if (cookies.Count == 0)
             {
-                MessageBox.Show(this, "No Roblox cookies were found in that text.\r\nA cookie starts with  _|WARNING:-DO-NOT-SHARE-THIS...", "Roblox MultiHub");
+                MessageBox.Show(this, "No Roblox cookies were found in that text.\r\nA cookie starts with  _|WARNING:-DO-NOT-SHARE-THIS...", "AltHub");
                 return;
             }
             int ok = 0;
@@ -1489,6 +1484,17 @@ namespace RobloxMultiHub
             return s.Count > 0 ? s[0] : null;
         }
 
+        async void ResolvePendingPrivate(List<Account> accs)
+        {
+            foreach (Account a in accs)
+                if (a.PrivateLink.Length > 0 && string.IsNullOrEmpty(a.PrivateCode))
+                {
+                    string l = a.PrivateLink;
+                    if (!await SetPrivateLink(a, l)) a.PrivateLink = "";    // could not resolve: do not keep a dead link
+                }
+            Store.SaveAccounts();
+        }
+
         void EditSelected()
         {
             List<Account> sel = SelectedAccounts();
@@ -1501,6 +1507,7 @@ namespace RobloxMultiHub
                 if (sel.Count > 1) AddLog("Saved the changes to " + sel.Count + " accounts.");
                 Store.SaveAccounts();
                 RefreshAccountList();
+                ResolvePendingPrivate(sel);
             }
         }
 

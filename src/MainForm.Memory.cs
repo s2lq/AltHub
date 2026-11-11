@@ -5,7 +5,7 @@ using System.IO;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace RobloxMultiHub
+namespace AltHub
 {
     // Performance page > Memory (RAM): live RAM use, "Clean memory now" and automatic cleaning over a limit.
     public partial class MainForm
@@ -35,7 +35,7 @@ namespace RobloxMultiHub
             chkAutoClean = Ui.Chk("Clean automatically when RAM use goes over", M.AutoClean, null);
             numMemLimit = Ui.Num(30, 98, M.Threshold, 60);
             p.Opt("Checks every second; cleans at most once a minute.",
-                "When ON, a small helper runs as administrator in the background (you are asked for permission when you turn this on and every time MultiHub starts). As soon as the RAM in use goes over this percentage, it cleans. It waits at least a minute before the next clean, so it never keeps cleaning in a loop.\n\n80% is a good limit. The helper stops when you close MultiHub.",
+                "When ON, a small helper runs as administrator in the background (you are asked for permission when you turn this on and every time AltHub starts). As soon as the RAM in use goes over this percentage, it cleans. It waits at least a minute before the next clean, so it never keeps cleaning in a loop.\n\n80% is a good limit. The helper stops when you close AltHub.",
                 chkAutoClean, numMemLimit, Ui.Lbl("%", "muted"));
             numMemInterval = Ui.Num(0, 1440, M.IntervalMin, 60);
             p.Opt("Optional extra clean on a timer (0 = off).",

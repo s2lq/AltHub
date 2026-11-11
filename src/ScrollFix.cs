@@ -2,7 +2,7 @@ using System;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
 
-namespace RobloxMultiHub
+namespace AltHub
 {
     // Makes the mouse wheel always scroll the page, even when the cursor is over a text box.
     // Windows normally sends the wheel to whatever control is under the pointer, so hovering a

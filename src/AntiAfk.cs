@@ -1,7 +1,7 @@
 using System;
 using System.Threading.Tasks;
 
-namespace RobloxMultiHub
+namespace AltHub
 {
     // Keeps accounts from being kicked for idling (Roblox kicks after about 20 minutes without input).
     // Every X minutes each Roblox window started by this app is brought to the front for a fraction of a

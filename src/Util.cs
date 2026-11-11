@@ -7,7 +7,7 @@ using System.Text.RegularExpressions;
 using System.Web.Script.Serialization;
 using System.Windows.Forms;
 
-namespace RobloxMultiHub
+namespace AltHub
 {
     public static class Log
     {
@@ -163,7 +163,7 @@ namespace RobloxMultiHub
         public static void Copy(string text)
         {
             try { Clipboard.SetText(text); }
-            catch (Exception) { MessageBox.Show("Could not access the clipboard. Try again.", "Roblox MultiHub"); }
+            catch (Exception) { MessageBox.Show("Could not access the clipboard. Try again.", "AltHub"); }
         }
 
         // Finds every .ROBLOSECURITY cookie inside any pasted text / file contents.

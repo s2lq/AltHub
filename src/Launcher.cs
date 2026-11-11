@@ -9,7 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Win32;
 
-namespace RobloxMultiHub
+namespace AltHub
 {
     // Holds Roblox's single-instance lock objects (ROBLOX_singletonMutex + ROBLOX_singletonEvent) so
     // that more than one Roblox client may run. Must be running BEFORE the first Roblox client starts.

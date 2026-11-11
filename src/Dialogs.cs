@@ -4,7 +4,7 @@ using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
 
-namespace RobloxMultiHub
+namespace AltHub
 {
     public static class Dialogs
     {
@@ -162,7 +162,7 @@ namespace RobloxMultiHub
             bool multi = list.Count > 1;
             Account a = list[0];
             string names = string.Join(" - ", list.Select(x => x.Username).ToArray());
-            Form f = Make((multi ? "Edit accounts - " : "Edit account - ") + names, 520, 504);
+            Form f = Make((multi ? "Edit accounts - " : "Edit account - ") + names, 520, 554);
             int y = 14;
             if (multi)
             {
@@ -200,6 +200,8 @@ namespace RobloxMultiHub
             pass.UseSystemPasswordChar = true;
             RoundTextBox place = AddField(f, Mixed("Game for this account - game link, private server link or Place ID", cGame), cGame, ref y);
             RoundTextBox job = AddField(f, Mixed("Saved Job ID / server (optional)", cJob), cJob, ref y);
+            string cPriv = Common(list, x => x.PrivateLink);
+            RoundTextBox priv = AddField(f, Mixed("Private server link for this account (empty = none)", cPriv), cPriv, ref y);
 
             Put(f, Ui.Lbl(cFps < 0 ? "FPS cap  (0 = use the global cap)  - different per account" : "FPS cap for this account  (0 = use the global cap)", "muted"), 16, y + 4);
             NumericUpDown fps = Put(f, Ui.Num(0, 1000, Math.Max(0, cFps), 80), 424, y);
@@ -235,6 +237,13 @@ namespace RobloxMultiHub
                     }
                 }
                 if (Changed(cJob, job.Text.Trim(), out v)) foreach (Account x in list) x.SavedJobId = v;
+                if (Changed(cPriv, priv.Text.Trim(), out v))
+                    foreach (Account x in list)
+                    {
+                        x.PrivateLink = v; x.PrivatePlaceId = 0; x.PrivateCode = "";   // resolved by the caller (share links need the network)
+                        long pp; string pc;
+                        if (Api.ParseOldPrivate(v, out pp, out pc)) { x.PrivatePlaceId = pp; x.PrivateCode = pc; }
+                    }
                 if (cFps < 0 ? fpsTouched : (int)fps.Value != cFps) foreach (Account x in list) x.FpsCap = (int)fps.Value;
                 if (cookie != null)
                 {

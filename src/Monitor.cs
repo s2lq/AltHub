@@ -5,7 +5,7 @@ using System.Drawing.Drawing2D;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
 
-namespace RobloxMultiHub
+namespace AltHub
 {
     // A tiny line graph of the last N values, drawn to fill itself. Used on the Monitor page.
     public class Sparkline : Control

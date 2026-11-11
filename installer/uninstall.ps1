@@ -1,26 +1,26 @@
-# Roblox MultiHub - uninstaller. Removes the app, the shortcuts and the Add/remove-programs
-# entry. Your accounts and settings (in %AppData%\RobloxMultiHub) are kept unless you say otherwise.
+# AltHub - uninstaller. Removes the app, the shortcuts and the Add/remove-programs
+# entry. Your accounts and settings (in %AppData%\AltHub) are kept unless you say otherwise.
 
 $ErrorActionPreference = 'SilentlyContinue'
-$dest = Join-Path $env:LOCALAPPDATA 'Programs\RobloxMultiHub'
+$dest = Join-Path $env:LOCALAPPDATA 'Programs\AltHub'
 
 Write-Host ''
-Write-Host '  Uninstalling Roblox MultiHub...' -ForegroundColor Cyan
+Write-Host '  Uninstalling AltHub...' -ForegroundColor Cyan
 
 # shortcuts
-Remove-Item (Join-Path $env:APPDATA 'Microsoft\Windows\Start Menu\Programs\Roblox MultiHub.lnk') -Force
-Remove-Item (Join-Path ([Environment]::GetFolderPath('Desktop')) 'Roblox MultiHub.lnk') -Force
+Remove-Item (Join-Path $env:APPDATA 'Microsoft\Windows\Start Menu\Programs\AltHub.lnk') -Force
+Remove-Item (Join-Path ([Environment]::GetFolderPath('Desktop')) 'AltHub.lnk') -Force
 # startup entry (if "Start with Windows" was on)
-Remove-ItemProperty 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Run' -Name 'RobloxMultiHub' -ErrorAction SilentlyContinue
+Remove-ItemProperty 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Run' -Name 'AltHub' -ErrorAction SilentlyContinue
 # add/remove-programs entry
-Remove-Item 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\RobloxMultiHub' -Recurse -Force
+Remove-Item 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\AltHub' -Recurse -Force
 
 $ans = Read-Host '  Also delete your saved accounts and settings? (y/N)'
 if ($ans -match '^[Yy]') {
-    Remove-Item (Join-Path $env:APPDATA 'RobloxMultiHub') -Recurse -Force
+    Remove-Item (Join-Path $env:APPDATA 'AltHub') -Recurse -Force
     Write-Host '  Accounts and settings deleted.'
 } else {
-    Write-Host '  Accounts and settings kept in %AppData%\RobloxMultiHub.'
+    Write-Host '  Accounts and settings kept in %AppData%\AltHub.'
 }
 
 # the program files (do this last; the folder holds this script)
