@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 
-namespace RobloxMultiHub
+namespace AltHub
 {
     // Result of the last clean, shared between the admin helper and the app through a small file.
     public class MemStatus
@@ -123,7 +123,7 @@ namespace RobloxMultiHub
         public static void RunHelper(int parentPid)
         {
             bool created;
-            Mutex one = new Mutex(true, "RobloxMultiHub_MemHelper", out created);
+            Mutex one = new Mutex(true, "AltHub_MemHelper", out created);
             if (!created) return;                           // a helper is already running
             try
             {

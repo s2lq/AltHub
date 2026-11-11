@@ -7,7 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace RobloxMultiHub
+namespace AltHub
 {
     // Presets: save the accounts that are running (in launch order), the game each one is in, their window
     // positions and all launch / layout / performance settings - and bring all of it back with one click.
@@ -74,10 +74,10 @@ namespace RobloxMultiHub
                 if (loadingPresets) return;
                 Store.Settings.StartupPreset = cbStartupPreset.SelectedIndex <= 0 ? "" : cbStartupPreset.SelectedItem.ToString();
                 Store.SaveSettings();
-                if (Store.Settings.StartupPreset.Length > 0) AddLog("Preset '" + Store.Settings.StartupPreset + "' will run every time MultiHub starts.");
+                if (Store.Settings.StartupPreset.Length > 0) AddLog("Preset '" + Store.Settings.StartupPreset + "' will run every time AltHub starts.");
             };
-            p.Opt("Runs a preset by itself every time MultiHub starts.",
-                "Together with 'Start MultiHub with Windows' (Settings page) your whole setup comes back after a restart of the PC without clicking anything. The preset starts a few seconds after the app opened.",
+            p.Opt("Runs a preset by itself every time AltHub starts.",
+                "Together with 'Start AltHub with Windows' (Settings page) your whole setup comes back after a restart of the PC without clicking anything. The preset starts a few seconds after the app opened.",
                 Ui.Fld("Run at startup", 100), cbStartupPreset);
 
             loadingPresets = false;
@@ -331,7 +331,7 @@ namespace RobloxMultiHub
             if (launching) { AddLog("A launch is already running. Press Stop to cancel it."); return; }
             AddLog("Running preset '" + pr.Name + "'...");
 
-            // Remember your own MultiHub settings, so the preset's settings apply only for this run and
+            // Remember your own AltHub settings, so the preset's settings apply only for this run and
             // are handed back afterwards. Running a preset must never permanently change your settings.
             PresetSettings mySettings = PresetSettings.Capture(Store.Settings);
             if (pr.Settings != null)
@@ -382,13 +382,13 @@ namespace RobloxMultiHub
             catch (Exception ex) { Log.Error("RunPreset", ex); AddLog("Preset failed: " + ex.Message); }
             if (ct.IsCancellationRequested) AddLog("Preset cancelled.");
             launchCts = null;
-            // Hand your own MultiHub settings back - a preset keeps its settings to itself and never changes yours.
+            // Hand your own AltHub settings back - a preset keeps its settings to itself and never changes yours.
             if (pr.Settings != null)
             {
                 mySettings.ApplyTo(Store.Settings);
                 Store.SaveSettings();
                 ReloadSettingControls();
-                AddLog("Your own MultiHub settings are back.");
+                AddLog("Your own AltHub settings are back.");
             }
             SetLaunching(false);
             UpdateStatusCells();

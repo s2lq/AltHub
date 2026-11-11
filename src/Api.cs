@@ -8,7 +8,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
-namespace RobloxMultiHub
+namespace AltHub
 {
     public class ApiResult
     {
@@ -365,6 +365,19 @@ namespace RobloxMultiHub
                 return;
             }
             foreach (object x in Json.Arr(node)) CollectGames(x, acc, depth + 1);
+        }
+
+        // Old style private-server links (roblox.com/games/ID?privateServerLinkCode=CODE). No network needed.
+        public static bool ParseOldPrivate(string link, out long placeId, out string code)
+        {
+            placeId = 0; code = "";
+            if (string.IsNullOrEmpty(link)) return false;
+            Match game = Regex.Match(link, @"/games/(\d+)");
+            Match c = Regex.Match(link, @"privateServerLinkCode=([^&#\s]+)");
+            if (!game.Success || !c.Success) return false;
+            placeId = long.Parse(game.Groups[1].Value);
+            code = c.Groups[1].Value;
+            return true;
         }
 
         // New style private-server links: https://www.roblox.com/share?code=XXXX&type=Server

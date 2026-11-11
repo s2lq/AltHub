@@ -4,7 +4,7 @@ using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace RobloxMultiHub
+namespace AltHub
 {
     // Posts short alerts to a Discord webhook the user pasted in Settings. Opt-in, and the URL
     // is only ever sent to Discord. Everything here is fire-and-forget: a failure is logged, never thrown.
@@ -63,11 +63,11 @@ namespace RobloxMultiHub
                     embed["color"] = color;
                     embed["timestamp"] = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ");
                     Dictionary<string, object> foot = new Dictionary<string, object>();
-                    foot["text"] = "Roblox MultiHub";
+                    foot["text"] = "AltHub";
                     embed["footer"] = foot;
 
                     Dictionary<string, object> body = new Dictionary<string, object>();
-                    body["username"] = "Roblox MultiHub";
+                    body["username"] = "AltHub";
                     body["embeds"] = new object[] { embed };
 
                     StringContent content = new StringContent(Json.To(body), Encoding.UTF8, "application/json");

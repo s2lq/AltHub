@@ -10,7 +10,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace RobloxMultiHub
+namespace AltHub
 {
     // Opens a clean, throw-away Edge/Chrome profile on roblox.com/login. You log in normally (captcha, 2-step,
     // passkeys all work). As soon as the browser has a valid .ROBLOSECURITY cookie we read it through the

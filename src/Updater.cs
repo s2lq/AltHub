@@ -4,7 +4,7 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace RobloxMultiHub
+namespace AltHub
 {
     public class UpdateInfo
     {
@@ -20,8 +20,8 @@ namespace RobloxMultiHub
     // downloads or replaces anything itself, so it adds no "downloader" behaviour for antivirus to flag.
     public static class Updater
     {
-        public const string LatestApi = "https://api.github.com/repos/Roblox-MultiHub/Roblox-MultiHub/releases/latest";
-        public const string ReleasesPage = "https://github.com/Roblox-MultiHub/Roblox-MultiHub/releases/latest";
+        public const string LatestApi = "https://api.github.com/repos/s2lq/AltHub/releases/latest";
+        public const string ReleasesPage = "https://github.com/s2lq/AltHub/releases/latest";
 
         static readonly HttpClient Http = new HttpClient();
         static Updater()
@@ -29,7 +29,7 @@ namespace RobloxMultiHub
             try
             {
                 Http.Timeout = TimeSpan.FromSeconds(12);
-                Http.DefaultRequestHeaders.UserAgent.ParseAdd("RobloxMultiHub");   // GitHub refuses requests with no User-Agent
+                Http.DefaultRequestHeaders.UserAgent.ParseAdd("AltHub");   // GitHub refuses requests with no User-Agent
             }
             catch (Exception) { }
         }

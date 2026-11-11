@@ -1,18 +1,21 @@
 <div align="center">
 
-# Roblox MultiHub
+<img src="site/logo.png" width="110" alt="AltHub logo">
+
+# AltHub
 
 **Run, manage and launch many Roblox accounts at once — multi-instance, window layouts, performance tweaks and more.**
 
-[![Download](https://img.shields.io/badge/Download-latest-5865F2?style=for-the-badge)](https://github.com/Roblox-MultiHub/Roblox-MultiHub/raw/main/download/RobloxMultiHub.zip)
-[![Discord](https://img.shields.io/badge/Discord-join-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/TCrVyjYhHr)
+[![Download](https://img.shields.io/badge/Download-latest-5865F2?style=for-the-badge)](https://github.com/s2lq/AltHub/releases/latest)
 [![License](https://img.shields.io/badge/License-GPL--3.0-blue?style=for-the-badge)](LICENSE)
 
 </div>
 
 ---
 
-Roblox MultiHub is a free, all-in-one Roblox account manager and multi-instance launcher for Windows. Add all your accounts once, launch as many as you want at the same time, and arrange their windows neatly over your screen — plus FPS/graphics tweaks, a RAM cleaner, presets, anti-AFK and a built-in macro recorder.
+> **Credits:** AltHub is a fork of **[Roblox MultiHub](https://github.com/Roblox-MultiHub/Roblox-MultiHub)** by the Roblox-MultiHub contributors, released under the GPL-3.0 license. Nearly all of the app is their work - please support and star the original project. AltHub adds a private server link saved **per account**, a new name and a new icon.
+
+AltHub is a free, all-in-one Roblox account manager and multi-instance launcher for Windows. Add all your accounts once, launch as many as you want at the same time, and arrange their windows neatly over your screen — plus FPS/graphics tweaks, a RAM cleaner, presets, anti-AFK and a built-in macro recorder.
 
 Useful for grinding, trading, holding items on alt accounts, or just keeping all your accounts in one place and launching them with one click.
 
@@ -31,6 +34,7 @@ Useful for grinding, trading, holding items on alt accounts, or just keeping all
 
 **🚀 Launching**
 - Join a game, a specific server (Job ID), a private server, or follow a player
+- **Private server per account** - save a different private server link on each account; every account remembers its own and joins it on launch (Launch page, or *Edit account*)
 - Search a game by name, pick a server by players / ping / FPS, or random
 - Launches like Roblox Account Manager — no "human verification" on join
 - Delay between accounts, max-windows limit, auto-close previous window
@@ -64,60 +68,26 @@ Useful for grinding, trading, holding items on alt accounts, or just keeping all
 - Your data is never uploaded anywhere — the app only talks to Roblox itself
 - Automatic backups
 
-## ⬇️ Download & install
+## ⬇️ Build & install
 
-1. **[⬇️ Download RobloxMultiHub.zip](https://github.com/Roblox-MultiHub/Roblox-MultiHub/raw/main/download/RobloxMultiHub.zip)** (direct download).
-2. Extract the whole folder somewhere (for example your Desktop).
+You need Windows 10 or 11. Nothing to download or install - the C# compiler is already part of Windows.
+
+1. Download this repository: **Code → Download ZIP** on GitHub, or `git clone https://github.com/s2lq/AltHub`. Extract it somewhere (for example your Desktop).
    *Tip: if Windows shows a "protected your PC" warning, right-click the ZIP → Properties → tick "Unblock" → OK, then extract again.*
-3. Double-click **`Install RobloxMultiHub.bat`**. It installs the app into your user profile (no admin needed), puts a shortcut on your Desktop and in the Start menu, and adds an entry to *Add or remove programs*. If `RobloxMultiHub.exe` isn't in the folder yet, it's built first with the C# compiler already in Windows 10/11 — nothing to download.
-4. From then on, launch **Roblox MultiHub** from the Start menu or the desktop shortcut.
+2. Double-click **`START HERE - Build and Run.bat`**. It compiles `AltHub.exe` (about 10 seconds) and starts it.
+3. Optional: double-click **`Install AltHub.bat`** to install into your user profile (no admin needed) with a Desktop / Start menu shortcut and an *Add or remove programs* entry.
+4. After you change the source, run **`Rebuild (only needed after editing the source).bat`**.
 
-> Prefer not to install? Just run **`START HERE - Build and Run.bat`** to build and start it in place, or run `RobloxMultiHub.exe` directly.
-> To remove it later: *Add or remove programs → Roblox MultiHub → Uninstall* (your saved accounts are kept unless you choose to delete them).
+If the build prints errors, copy all the text from the black window and open an issue.
 
-The `Help` page inside the app explains every button and option.
-
-## ⚠️ Warning — use at your own risk
-
-Running multiple Roblox clients and automating input (multi-instance, anti-AFK, macros) is against Roblox's rules and **can get accounts moderated**. Roblox's anti-cheat team has said multiple clients may be treated as abusive, and Roblox can change the client at any time and break this.
-
-- Use **your own accounts** and accept the risk.
-- A cookie is a login — never share your cookies or your `accounts.dat` file.
-- Add a **verified email + 2-step verification** to every account. Roblox can lock accounts used a lot from one PC, and with an email you can always recover them.
-
-Not affiliated with Roblox Corporation, Roblox Account Manager or OpenMultiBoxing. No code from those projects is used.
-
-## ❓ FAQ
-
-**Is it free?**
-Yes, 100% free. Every feature, no paywalls, no ads. Donations are welcome but never required.
-
-**Is it open source?**
-Yes — the full source code is in the download and this repo, so you can read and check exactly what it does.
-
-**Will I get banned?**
-Running multiple accounts and automating input is against Roblox's rules and is always at your own risk. Use your own accounts, and add a verified email + 2-step so you can recover a locked account.
-
-**Are my accounts / passwords safe?**
-Your accounts are encrypted and stored only on your own PC (optionally behind your own password). Nothing is ever uploaded to us or anyone — the app only talks to Roblox itself.
-
-**Why does the RAM cleaner ask for admin?**
-Clearing Windows' memory needs administrator rights — that's a Windows rule. Only a tiny helper runs as admin; say no and it still trims the Roblox windows.
-
-**I used to get "human verification" when joining — is that fixed?**
-Yes. The app launches like Roblox Account Manager, so accounts aren't asked to verify on join. Keep the launch method on "roblox-player link" (Settings).
+Prebuilt `AltHub.exe` files are on the [Releases page](https://github.com/s2lq/AltHub/releases) when available. They are built by the [GitHub Actions workflow](.github/workflows/build.yml) and are **not code-signed**, so Windows SmartScreen may warn.
 
 **My antivirus flagged it?**
 It automates windows and input, which some antivirus flags as a false positive. The source is included so you can verify it — add an exclusion if needed.
 
-## 💬 Support & community
+## 🙏 Credits
 
-- 💖 Donate: **[buymeacoffee.com/multihub](https://buymeacoffee.com/multihub)** — keeps the project going, totally optional.
-- 💬 Discord: **[discord.gg/TCrVyjYhHr](https://discord.gg/TCrVyjYhHr)** — announcements, update logs, help and support tickets.
-
-## 🔏 Code signing
-
-Free code signing for Windows builds is provided by [SignPath.io](https://signpath.io), with a certificate issued by the [SignPath Foundation](https://signpath.org). The signed executable is built in the open by the [GitHub Actions workflow](.github/workflows/build.yml), straight from the source in this repository.
+AltHub is based on **[Roblox MultiHub](https://github.com/Roblox-MultiHub/Roblox-MultiHub)** by the Roblox-MultiHub contributors (GPL-3.0). If you like this, please support the original authors: [buymeacoffee.com/multihub](https://buymeacoffee.com/multihub). The feature set is modelled on Roblox Account Manager and the window layout on OpenMultiBoxing; no code from those projects is used.
 
 ## 📄 License
 

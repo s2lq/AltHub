@@ -1,4 +1,4 @@
-ROBLOX MULTIHUB
+ALTHUB
 ===============
 Roblox account manager + multi-instance + automatic window grid, in ONE program.
 
@@ -8,9 +8,9 @@ HOW TO GET THE .EXE (no installs needed, takes ~10 seconds)
    Tip: if Windows shows a "protected your PC" warning on the .bat file, right-click the
    ZIP first > Properties > tick "Unblock" > OK, then extract again.
 2. Double-click:   START HERE - Build and Run.bat
-   It compiles RobloxMultiHub.exe with the C# compiler that is already built into
+   It compiles AltHub.exe with the C# compiler that is already built into
    Windows 10/11 (nothing to download) and starts it.
-3. From now on just double-click  RobloxMultiHub.exe  (you can move it anywhere).
+3. From now on just double-click  AltHub.exe  (you can move it anywhere).
 
 If the build prints errors, copy ALL the text from the black window and send it back.
 (The source is in the "src" folder; "Rebuild" re-compiles after any change.)
@@ -58,10 +58,10 @@ RAM      : Performance page > Memory: live RAM use, 'Clean memory now' and auto-
            over a limit (default 80%), like Mem Reduct. A small helper runs as administrator for that.
 Logins   : at start-up every saved login is checked; accounts Roblox signed out are listed in a popup.
 Security : accounts always encrypted (Windows DPAPI, or your own password with AES-256),
-           stored in %APPDATA%\RobloxMultiHub (not next to the exe), automatic backups.
+           stored in %APPDATA%\AltHub (not next to the exe), automatic backups.
 Other    : dark/light theme, start with Windows.
 Support  : Settings > 'Support this project' has 'Buy us a coffee' and 'Join our Discord' buttons.
-           The tool is and stays free. Links: buymeacoffee.com/multihub  and  discord.gg/TCrVyjYhHr
+           The tool is and stays free. Based on Roblox MultiHub (GPL-3.0): github.com/Roblox-MultiHub/Roblox-MultiHub  -  support the original author: buymeacoffee.com/multihub
 
 NOT INCLUDED (compared with Roblox Account Manager)
 ---------------------------------------------------

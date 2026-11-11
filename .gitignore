@@ -5,7 +5,7 @@
 bin/
 obj/
 
-# Local user data (accounts, settings, logs) - this lives in %APPDATA%\RobloxMultiHub,
+# Local user data (accounts, settings, logs) - this lives in %APPDATA%\AltHub,
 # but ignore it here too in case anyone ever points the data folder at the project.
 accounts.dat
 accounts.dat.old

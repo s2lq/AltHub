@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 
-namespace RobloxMultiHub
+namespace AltHub
 {
     // Lightweight translation layer. Strings are looked up by their English text, so any string that
     // is not translated falls back cleanly to English - a half-translated language still reads fine.

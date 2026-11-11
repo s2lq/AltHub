@@ -8,7 +8,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 
-namespace RobloxMultiHub
+namespace AltHub
 {
     // One recorded input event. T = milliseconds since the recording started.
     public class MacroEvent
@@ -174,7 +174,7 @@ namespace RobloxMultiHub
         public static List<MacroEvent> Load(string path)
         {
             string[] lines = File.ReadAllLines(path);
-            if (lines.Length == 0 || lines[0].Trim() != Header) throw new InvalidDataException("This is not a Roblox MultiHub macro file.");
+            if (lines.Length == 0 || lines[0].Trim() != Header) throw new InvalidDataException("This is not a AltHub macro file.");
             List<MacroEvent> ev = new List<MacroEvent>();
             for (int i = 1; i < lines.Length; i++)
             {

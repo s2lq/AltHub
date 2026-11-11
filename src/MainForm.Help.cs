@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
 
-namespace RobloxMultiHub
+namespace AltHub
 {
     // Help page: one foldable section per topic. All sections start closed; click a title to open it.
     public partial class MainForm
@@ -158,7 +158,7 @@ namespace RobloxMultiHub
                 new string[] { "Presets",
                     "A preset saves your whole setup: the accounts that are running (in the order you launched them), the game / server each one is in, the position and size of every Roblox window, and the settings of the Launch, Layout, Performance and Settings pages.",
                     "Run puts it all back: settings restored, accounts launched one after another, windows moved to where they were. Accounts that are already running are only moved.",
-                    "'Run at startup' together with 'Start MultiHub with Windows' brings everything back after a PC restart without clicking anything.",
+                    "'Run at startup' together with 'Start AltHub with Windows' brings everything back after a PC restart without clicking anything.",
                     "Servers close when they are empty or old, so by default accounts rejoin the same game on any server. Tick 'Rejoin the exact same servers' to try the saved server (useful shortly after saving). Private servers and followed players are always kept." },
 
                 new string[] { "Performance: CPU and graphics",
@@ -168,7 +168,7 @@ namespace RobloxMultiHub
 
                 new string[] { "Performance: memory (RAM) cleaner",
                     "Works like Mem Reduct. 'Clean memory now' frees RAM right away: programs (including every Roblox window) give back memory they are not using, and Windows' caches are emptied. Windows only allows that with administrator rights, so you are asked for permission. If you say No, only the Roblox windows started by this app are trimmed.",
-                    "Auto-clean - tick 'Clean automatically when RAM use goes over' and choose a limit (default 80%). A tiny helper then runs as administrator in the background, checks the RAM every second and cleans as soon as the limit is passed, at most once a minute. You are asked for permission when you turn it on and each time MultiHub starts; the helper stops when you close MultiHub. Optionally it also cleans every N minutes.",
+                    "Auto-clean - tick 'Clean automatically when RAM use goes over' and choose a limit (default 80%). A tiny helper then runs as administrator in the background, checks the RAM every second and cleans as soon as the limit is passed, at most once a minute. You are asked for permission when you turn it on and each time AltHub starts; the helper stops when you close AltHub. Optionally it also cleans every N minutes.",
                     "What is cleaned - the ticked areas: running programs, the system file cache, modified pages and the low-priority standby list are recommended. 'Whole standby list' frees the most but makes programs load a bit slower afterwards; 'Combine identical memory pages' (Windows 10 / 11) merges duplicate memory, which many Roblox windows have a lot of, but costs some CPU for a moment.",
                     "Right after a clean a window can hitch for a moment while it takes back what it needs - that is normal." },
 
@@ -182,10 +182,10 @@ namespace RobloxMultiHub
                     "'Small' shrinks the window to just the buttons; 'Large' shows all options again. The window remembers which one you used last." },
 
                 new string[] { "Settings, security and your data",
-                    "Multi-instance - lets several Roblox windows run at once. It only works for Roblox windows started after this app, and only while this app stays open. 'Start MultiHub with Windows' makes sure the app is first.",
+                    "Multi-instance - lets several Roblox windows run at once. It only works for Roblox windows started after this app, and only while this app stays open. 'Start AltHub with Windows' makes sure the app is first.",
                     "Encryption - accounts (including logins) are always stored encrypted in your user profile, not next to the program. By default Windows protects them for your Windows user; with your own password they are protected with AES-256 and can be moved to another PC. A forgotten password cannot be recovered.",
                     "Backups - a backup of your accounts is made every time the app starts (the last 10 are kept). 'Open data folder' shows settings, log and backups.",
-                    "Login check at start-up - every saved login is tested once when MultiHub starts. Accounts that Roblox signed out since the previous check are shown in one popup, so you know which ones to log in with again (+ Add account > Log in with a browser - the existing entry is updated)." },
+                    "Login check at start-up - every saved login is tested once when AltHub starts. Accounts that Roblox signed out since the previous check are shown in one popup, so you know which ones to log in with again (+ Add account > Log in with a browser - the existing entry is updated)." },
 
                 new string[] { "Keeping your accounts safe",
                     "A cookie is a login: anyone who has it can use the account. Never share cookies, never paste them into websites, and keep this app's data folder private.",

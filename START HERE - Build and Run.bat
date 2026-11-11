@@ -1,8 +1,8 @@
 @echo off
 setlocal
 cd /d "%~dp0"
-if not exist "RobloxMultiHub.exe" (
+if not exist "AltHub.exe" (
   call "%~dp0Build.bat"
   if errorlevel 1 exit /b 1
 )
-start "" "%~dp0RobloxMultiHub.exe"
+start "" "%~dp0AltHub.exe"

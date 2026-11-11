@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace RobloxMultiHub
+namespace AltHub
 {
     // Builds the contents of Roblox's ClientAppSettings.json.
     // Since 29 Sep 2025 the Roblox client ignores every flag that is not on its official allowlist

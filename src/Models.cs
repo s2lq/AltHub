@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace RobloxMultiHub
+namespace AltHub
 {
     // One saved Roblox account. Only plain public fields so the JSON serializer can round-trip it.
     public class Account
@@ -19,6 +19,9 @@ namespace RobloxMultiHub
         public string SavedJobId = "";
         public int FpsCap;                  // 0 = use the global FPS cap; otherwise this account launches with its own cap
         public string GameLink = "";        // game link / Place ID this account joins by default
+        public string PrivateLink = "";     // private server link saved for THIS account (as typed / pasted)
+        public long PrivatePlaceId;         // resolved from PrivateLink
+        public string PrivateCode = "";     // resolved private server link code; empty = no private server saved
         public long TrackerId;              // stable "browser tracker id" for this account
         public long LastUsedTicks;
         public int Order;
@@ -174,7 +177,7 @@ namespace RobloxMultiHub
         public bool WebhookBatch = true;            // a Launch all / preset batch finished
         public bool WebhookLocked = true;           // an account came back locked (HTTP 403)
 
-        // Discord Rich Presence ("Playing Roblox MultiHub" on your profile). Needs a Discord Application ID.
+        // Discord Rich Presence ("Playing AltHub" on your profile). Needs a Discord Application ID.
         public bool DiscordRpc = true;
         public string DiscordAppId = "";
 

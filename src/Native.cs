@@ -2,7 +2,7 @@ using System;
 using System.Runtime.InteropServices;
 using System.Text;
 
-namespace RobloxMultiHub
+namespace AltHub
 {
     public static class Native
     {

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 
-namespace RobloxMultiHub
+namespace AltHub
 {
     // "Max alts": keeps the Roblox windows you are NOT playing light on the PC. The client in the
     // foreground is left at full speed; every other client gets Idle CPU priority plus Windows'

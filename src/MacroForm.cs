@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace RobloxMultiHub
+namespace AltHub
 {
     // TinyTask-style macro recorder in its own window (not owned by the hub, so 'Stay on top' only
     // affects this small window). Record mouse + keyboard, save / open recordings, play them back
@@ -48,7 +48,7 @@ namespace RobloxMultiHub
         public MacroForm()
         {
             loading = true;
-            Text = "Macro recorder - Roblox MultiHub";
+            Text = "Macro recorder - AltHub";
             Font = Theme.Base;
             AutoScaleDimensions = new SizeF(96F, 96F);
             AutoScaleMode = AutoScaleMode.Dpi;

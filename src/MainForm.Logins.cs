@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace RobloxMultiHub
+namespace AltHub
 {
     // At start-up every saved login is checked once. Accounts that Roblox signed out since the last check
     // (password changed, logged out everywhere, account locked or reset) are shown in one popup.
@@ -58,7 +58,7 @@ namespace RobloxMultiHub
                 }
                 else if (++failures >= 3)
                 {
-                    AddLog("Login check stopped: Roblox could not be reached (" + u.Error + "). It runs again next time MultiHub starts.");
+                    AddLog("Login check stopped: Roblox could not be reached (" + u.Error + "). It runs again next time AltHub starts.");
                     break;
                 }
                 await Task.Delay(350);
@@ -102,7 +102,7 @@ namespace RobloxMultiHub
                 sb.AppendLine();
             }
             sb.AppendLine("Tip: add a verified email address (and 2-step verification) to every account in Roblox's account settings. Roblox can lock accounts used a lot from one PC (players report it from about 8 accounts). With a verified email you can always get the account back.");
-            string title = locked.Count > 0 && signedOut.Count == 0 ? "Roblox MultiHub - accounts locked" : "Roblox MultiHub - account problems";
+            string title = locked.Count > 0 && signedOut.Count == 0 ? "AltHub - accounts locked" : "AltHub - account problems";
             MessageBox.Show(this, sb.ToString(), title, MessageBoxButtons.OK, MessageBoxIcon.Warning);
         }
     }
