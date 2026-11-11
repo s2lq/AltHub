@@ -1,8 +1,12 @@
 name: Release
 
-# When a version tag (v1.4.0 ...) is pushed: build AltHub.exe on a clean Windows runner and attach it to the release.
+# Builds AltHub.exe on a clean Windows runner and publishes a GitHub release.
+#  - push to main:   releases the version in the VERSION file if that release does not exist yet
+#  - push of a tag:  v1.4.0 ...
+#  - Run workflow:   (re)builds and publishes / replaces the assets of the VERSION file's release
 on:
   push:
+    branches: [ main ]
     tags: [ 'v*' ]
   workflow_dispatch:
 
@@ -12,11 +16,31 @@ permissions:
 jobs:
   release:
     runs-on: windows-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
     steps:
       - name: Check out source
         uses: actions/checkout@v4
 
+      - name: Work out the version
+        shell: pwsh
+        run: |
+          $ver = (Get-Content VERSION).Trim()
+          $tag = "v$ver"
+          if ("${{ github.ref_type }}" -eq "tag") { $tag = "${{ github.ref_name }}" }
+          "TAG=$tag" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          "VER=$ver" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          $exists = $false
+          gh release view $tag 2>$null | Out-Null
+          if ($LASTEXITCODE -eq 0) { $exists = $true }
+          $global:LASTEXITCODE = 0
+          if ($exists -and "${{ github.event_name }}" -eq "push") {
+            Write-Host "Release $tag already exists - nothing to do (run the workflow by hand to replace its files)."
+            "SKIP=1" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          }
+
       - name: Compile AltHub.exe
+        if: env.SKIP != '1'
         shell: pwsh
         run: |
           $csc = "$env:windir\Microsoft.NET\Framework64\v4.0.30319\csc.exe"
@@ -28,23 +52,38 @@ jobs:
             /r:System.Web.Extensions.dll /r:System.Net.Http.dll /r:System.Security.dll /r:System.Management.dll `
             /recurse:src\*.cs
           if (-not (Test-Path AltHub.exe)) { Write-Error "Build produced no exe"; exit 1 }
-          Get-FileHash AltHub.exe -Algorithm SHA256 | Tee-Object -FilePath AltHub.exe.sha256.txt
 
       - name: Package
+        if: env.SKIP != '1'
         shell: pwsh
         run: |
-          $tag = "${{ github.ref_name }}"
-          if (-not $tag.StartsWith("v")) { $tag = "v" + (Get-Content VERSION).Trim() }
-          New-Item -ItemType Directory -Force -Path pkg | Out-Null
-          Copy-Item AltHub.exe, app.ico, LICENSE, README.md, CHANGELOG.md pkg\
-          Compress-Archive -Path pkg\* -DestinationPath "AltHub-$tag-windows.zip" -Force
-          "TAG=$tag" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          New-Item -ItemType Directory -Force -Path pkg\installer | Out-Null
+          Copy-Item AltHub.exe, app.ico, LICENSE, README.md, README.txt, CHANGELOG.md, "Install AltHub.bat" pkg\
+          Copy-Item installer\install.ps1, installer\uninstall.ps1 pkg\installer\
+          Compress-Archive -Path pkg\* -DestinationPath "AltHub-$env:TAG-windows.zip" -Force
+          $sums = @()
+          foreach ($f in @("AltHub-$env:TAG-windows.zip", "AltHub.exe")) { $sums += ((Get-FileHash $f -Algorithm SHA256).Hash.ToLower() + "  " + $f) }
+          $sums | Set-Content SHA256SUMS.txt
+          # release notes = the CHANGELOG section of this version
+          $lines = Get-Content CHANGELOG.md
+          $out = @(); $on = $false
+          foreach ($l in $lines) {
+            if ($l -match "^## ") { if ($on) { break }; if ($l -match [regex]::Escape($env:VER)) { $on = $true; continue } }
+            elseif ($on) { $out += $l }
+          }
+          if ($out.Count -eq 0) { $out = @("AltHub $env:TAG") }
+          $out += ""
+          $out += "Download the zip, extract it and run AltHub.exe (or Install AltHub.bat). Unsigned build - SmartScreen may warn. SHA-256 checksums are in SHA256SUMS.txt."
+          $out | Set-Content NOTES.md
 
-      - name: Publish release assets
+      - name: Publish release
+        if: env.SKIP != '1'
         shell: pwsh
-        env:
-          GH_TOKEN: ${{ github.token }}
         run: |
-          gh release view $env:TAG 2>$null
-          if ($LASTEXITCODE -ne 0) { gh release create $env:TAG --title "AltHub $env:TAG" --notes-file CHANGELOG.md }
-          gh release upload $env:TAG "AltHub-$env:TAG-windows.zip" AltHub.exe AltHub.exe.sha256.txt --clobber
+          gh release view $env:TAG 2>$null | Out-Null
+          if ($LASTEXITCODE -ne 0) {
+            $global:LASTEXITCODE = 0
+            gh release create $env:TAG --target "${{ github.sha }}" --title "AltHub $env:VER" --notes-file NOTES.md
+          }
+          $global:LASTEXITCODE = 0
+          gh release upload $env:TAG "AltHub-$env:TAG-windows.zip" AltHub.exe SHA256SUMS.txt --clobber
