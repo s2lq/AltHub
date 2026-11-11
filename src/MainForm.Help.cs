@@ -148,7 +148,7 @@ namespace AltHub
                     "Launch all / Stop all - under the account list. Stop all closes only the Roblox windows this app started." },
 
                 new string[] { "Keyboard shortcuts",
-                    "In the AltHub window - Ctrl+L launch selected, Ctrl+Shift+L launch all, Ctrl+Shift+S stop all, Ctrl+N add account (browser login), Ctrl+E or F2 edit, Ctrl+F search (Esc clears), Ctrl+R check logins, F5 refresh status and Robux, Ctrl+G switch List / Cards, Ctrl+T tags menu, Ctrl+A select all, Delete remove.",
+                    "In the AltHub window - Ctrl+L launch selected, Ctrl+Shift+L launch all, Ctrl+Shift+S stop all, Ctrl+Shift+M mute / unmute selected, Ctrl+N add account (browser login), Ctrl+E or F2 edit, Ctrl+F search (Esc clears), Ctrl+R check logins, F5 refresh status and Robux, Ctrl+G switch List / Cards, Ctrl+T tags menu, Ctrl+A select all, Delete remove.",
                     "Pages - Ctrl+1 Home, 2 Launch, 3 Servers, 4 Private, 5 Layout, 6 Monitor, 7 Presets, 8 Perf, 9 Settings, 0 Help, Ctrl+, Settings, Ctrl+M Macro, Ctrl+Tab / Ctrl+Shift+Tab next / previous page.",
                     "From any program (global) - Ctrl+Alt+F5 launch all, Ctrl+Alt+F6 stop all, Ctrl+Alt+F7 show / hide AltHub, Ctrl+Alt+F9 arrange windows, Ctrl+Alt+F10 / F11 focus the previous / next Roblox window." },
 
@@ -166,6 +166,10 @@ namespace AltHub
                     "Notes - the Description field in Edit is shown on the account card (for example 'farming').",
                     "Robux - loaded a few seconds after start and then every 30 minutes; More > 'Refresh Robux balance' updates the selected accounts now.",
                     "Proxy - an optional host:port (or http://user:pass@host:port) per account. It is used for this app's web requests for that account (login checks, status, tickets, link checks). Roblox's own game connection cannot be proxied by this app, so it does not hide your IP from the game servers." },
+
+                new string[] { "Mute and memory",
+                    "Mute - select accounts and press Mute in the footer (or Ctrl+Shift+M). Their Roblox sound is muted through the Windows volume mixer: right away if they run, otherwise as soon as their window starts. Press it again to unmute. A 'Muted' chip shows in the list.",
+                    "Memory per Roblox window (Perf page) - keeps every window around 250 MB (a window that struggles is moved to 500 MB). The window you are playing can stay unlimited." },
 
                 new string[] { "Tray, notifications and hotkeys",
                     "Tray icon - right-click for Launch all, Stop all and Quit; double-click to open the window. Settings can hide the window to the tray when you minimize or close it.",

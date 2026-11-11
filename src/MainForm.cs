@@ -570,6 +570,7 @@ namespace AltHub
                 RobuxTick();
                 if (tickN % 5 == 0) RamCap.Tick(AddLog);
                 if (tickN % 5 == 0) SystemThemeTick();
+                if (tickN % 3 == 0) MuteTick();
                 if (currentPage == "Home" && tickN % 2 == 0) RefreshHome();
                 if (Store.Settings.AntiAfk && (DateTime.Now - lastAntiAfk).TotalMinutes >= Math.Max(1, Store.Settings.AntiAfkMin)
                     && (macroForm == null || macroForm.IsDisposed || !macroForm.Busy)) RunAntiAfk();
@@ -895,15 +896,20 @@ namespace AltHub
             Ui.Tips.SetToolTip(bAll, "Launch every account that is currently visible in the list (Ctrl+Shift+L).");
             RoundButton bStop = Ui.Btn(Lang.T("Stop all"), 80, delegate { StopAll(); }, "danger");
             Ui.Tips.SetToolTip(bStop, "Close every Roblox window that this app started (Ctrl+Shift+S). Windows you opened yourself are left alone.");
+            RoundButton bMute = Ui.Btn("Mute", 80, delegate { ToggleMuteSelected(); }, "");
+            bMute.Icon = "mute";
+            bMute.FitText(80);
+            Ui.Tips.SetToolTip(bMute, "Mute or unmute the Roblox sound of the selected accounts (Ctrl+Shift+M). Works before they are launched (it is applied as soon as the window starts) and while they run.");
             RoundButton bUp = Ui.Btn("Up", 44, delegate { MoveSelected(-1); }, "");
             RoundButton bDown = Ui.Btn("Down", 54, delegate { MoveSelected(1); }, "");
             Ui.Tips.SetToolTip(bUp, "Move the selected account up in your own order.");
             Ui.Tips.SetToolTip(bDown, "Move the selected account down in your own order.");
             lblCount = Ui.Lbl("", "muted");              // kept for the counters; not shown (the Launch page lists the selection)
-            foreach (RoundButton b in new RoundButton[] { bAll, bStop, bUp, bDown }) b.Margin = new Padding(0, 8, 6, 6);
+            foreach (RoundButton b in new RoundButton[] { bAll, bStop, bMute, bUp, bDown }) b.Margin = new Padding(0, 8, 6, 6);
             foot.Controls.Add(bLaunch);
             foot.Controls.Add(bAll);
             foot.Controls.Add(bStop);
+            foot.Controls.Add(bMute);
             foot.Controls.Add(bUp);
             foot.Controls.Add(bDown);
             t.Controls.Add(foot, 0, 3);
@@ -930,6 +936,7 @@ namespace AltHub
 
             accMenu = Ui.Menu();
             accMenu.Items.Add(Ui.Item("Launch selected", delegate { LaunchSelected(); }));
+            accMenu.Items.Add(Ui.Item("Mute / unmute selected  (Ctrl+Shift+M)", delegate { ToggleMuteSelected(); }));
             accMenu.Items.Add(new ToolStripSeparator());
             ToolStripMenuItem copy = Ui.Item("Copy", null);
             copy.DropDownItems.Add(Ui.Item("Username", delegate { CopyField(delegate(Account a) { return a.Username; }); }));
@@ -1086,6 +1093,7 @@ namespace AltHub
             int limit = right - reserve;
             int cx = DrawSeg(g, "@" + a.Username, x0, y2, limit, Theme.Muted);
             if (!string.IsNullOrEmpty(a.Group)) cx = DrawChip(g, Util.Short(a.Group, 20), cx + 8, y2, limit);
+            if (a.Muted) cx = DrawChip(g, "Muted", cx + 8, y2, limit, "mute");
             string pn = PrivateNameOf(a);
             if (pn.Length > 0) cx = DrawChip(g, Util.Short(pn, 14), cx + 8, y2, limit, "lock");
             int tagN = 0;
@@ -1213,6 +1221,7 @@ namespace AltHub
             else info = last;
             string user = "@" + a.Username + (string.IsNullOrEmpty(a.Group) ? "" : "   -   " + Util.Short(a.Group, 20));
             card.SetState(DisplayName(a), user, info, pill, pc, running, GameText(a), selected.Contains(a.Id));
+            card.SetMuted(a.Muted);
             List<string> sids = new List<string>();
             List<string> snames = new List<string>();
             foreach (PrivateServer ps in Store.Servers) { sids.Add(ps.Id); snames.Add(Dialogs.ServerLabel(ps)); }
