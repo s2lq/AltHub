@@ -476,6 +476,33 @@ namespace AltHub
         }
     }
 
+    // Switches the whole app into Windows' dark mode (scrollbars, spin buttons, drop-down lists, menus). Without this the
+    // per-control "DarkMode_Explorer" theme often leaves the native scrollbars white. Uses the same undocumented uxtheme
+    // calls that Windows' own dark apps use; on older Windows versions it simply does nothing.
+    public static class DarkMode
+    {
+        [DllImport("kernel32.dll", CharSet = CharSet.Ansi)] static extern IntPtr LoadLibrary(string name);
+        [DllImport("kernel32.dll", CharSet = CharSet.Ansi)] static extern IntPtr GetProcAddress(IntPtr module, IntPtr ordinal);
+        delegate int SetPreferredAppModeFn(int mode);
+        delegate void FlushMenuThemesFn();
+
+        public static void Apply(bool dark)
+        {
+            try
+            {
+                IntPtr ux = LoadLibrary("uxtheme.dll");
+                if (ux == IntPtr.Zero) return;
+                IntPtr p135 = GetProcAddress(ux, (IntPtr)135);       // SetPreferredAppMode / AllowDarkModeForApp
+                if (p135 != IntPtr.Zero)
+                    ((SetPreferredAppModeFn)Marshal.GetDelegateForFunctionPointer(p135, typeof(SetPreferredAppModeFn)))(dark ? 2 : 3);   // ForceDark : ForceLight
+                IntPtr p136 = GetProcAddress(ux, (IntPtr)136);       // FlushMenuThemes
+                if (p136 != IntPtr.Zero)
+                    ((FlushMenuThemesFn)Marshal.GetDelegateForFunctionPointer(p136, typeof(FlushMenuThemesFn)))();
+            }
+            catch (Exception) { }
+        }
+    }
+
     // Gives scrollbars (and spin buttons) the dark / light Windows look instead of the plain grey classic one.
     public static class NativeTheme
     {

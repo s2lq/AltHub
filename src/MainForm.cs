@@ -483,6 +483,7 @@ namespace AltHub
 
         void ApplyTheme()
         {
+            DarkMode.Apply(Theme.Dark);
             Theme.Apply(this);
             NativeTheme.TitleBar(this);
             if (accMenu != null) StyleMenus();

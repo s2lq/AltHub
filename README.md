@@ -21,6 +21,22 @@ Useful for grinding, trading, holding items on alt accounts, or just keeping all
 
 > It is **100% free** — every feature, no paywalls, no ads. The full source is included, so you can read and check exactly what it does.
 
+## 📸 Screenshots
+
+<p align="center">
+  <img src="docs/screenshots/home.png" width="49%" alt="Home">
+  <img src="docs/screenshots/private-servers.png" width="49%" alt="Private servers tab">
+</p>
+<p align="center">
+  <img src="docs/screenshots/cards.png" width="49%" alt="Account cards with a private server drop-down">
+  <img src="docs/screenshots/settings.png" width="49%" alt="Settings">
+</p>
+<p align="center">
+  <img src="docs/screenshots/light-theme.png" width="49%" alt="Light theme">
+</p>
+
+<sub>Screenshots use made-up sample accounts. Fonts may look slightly different on your PC.</sub>
+
 ## ✨ Features
 
 **👥 Accounts**
