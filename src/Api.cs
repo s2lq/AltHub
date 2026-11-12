@@ -79,6 +79,49 @@ namespace AltHub
 
         // The HttpClient for an account's requests: its own proxy when one is set, otherwise the shared direct client.
         // (Only this app's web requests go through it - Roblox's game connection itself cannot be proxied from here.)
+        // A one-off client for a proxy string (host:port, user:pass@host:port, scheme://...). Throws on a malformed proxy.
+        static HttpClient MakeProxyClient(string key, int timeoutSec)
+        {
+            Uri u = new Uri(key.IndexOf("://", StringComparison.Ordinal) > 0 ? key : "http://" + key);
+            WebProxy wp = new WebProxy(u.Host, u.Port);
+            if (!string.IsNullOrEmpty(u.UserInfo))
+            {
+                string[] up = u.UserInfo.Split(new char[] { ':' }, 2);
+                wp.Credentials = new NetworkCredential(Uri.UnescapeDataString(up[0]), up.Length > 1 ? Uri.UnescapeDataString(up[1]) : "");
+            }
+            HttpClientHandler h = new HttpClientHandler();
+            h.UseCookies = false;
+            h.Proxy = wp;
+            h.UseProxy = true;
+            h.AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate;
+            HttpClient c = new HttpClient(h);
+            c.Timeout = TimeSpan.FromSeconds(timeoutSec);
+            c.DefaultRequestHeaders.UserAgent.ParseAdd("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36");
+            return c;
+        }
+
+        // Asks Roblox (a public page) through the proxy: "OK 340 ms" or what went wrong.
+        public static async Task<string> TestProxy(string proxy)
+        {
+            try
+            {
+                using (HttpClient c = MakeProxyClient(proxy, 12))
+                {
+                    System.Diagnostics.Stopwatch sw = System.Diagnostics.Stopwatch.StartNew();
+                    HttpResponseMessage r = await c.GetAsync("https://users.roblox.com/v1/users/1");
+                    sw.Stop();
+                    if (r.IsSuccessStatusCode) return "OK " + sw.ElapsedMilliseconds + " ms";
+                    return "answered HTTP " + (int)r.StatusCode + (r.StatusCode == HttpStatusCode.ProxyAuthenticationRequired ? " (wrong user / password)" : "");
+                }
+            }
+            catch (Exception ex)
+            {
+                Exception e = ex is AggregateException && ex.InnerException != null ? ex.InnerException : ex;
+                while (e.InnerException != null) e = e.InnerException;
+                return "failed: " + e.Message;
+            }
+        }
+
         static HttpClient ClientFor(string cookie)
         {
             if (string.IsNullOrEmpty(cookie)) return Http;

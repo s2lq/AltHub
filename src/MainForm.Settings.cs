@@ -190,6 +190,8 @@ namespace AltHub
                 "Useful with multi-instance: if this app starts before Roblox does, it always wins the lock. Adds a normal Windows startup entry that you can remove here again.",
                 chkStartup);
 
+            BuildProxySection(p);
+
             BuildSystemSettings(p);
 
             p.Section("Updates");

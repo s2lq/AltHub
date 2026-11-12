@@ -26,6 +26,7 @@ namespace AltHub
         public string PrivateServerId = ""; // the private server (see Store.Servers) this account joins; "" = none
         public string Tags = "";            // comma separated tags, for bulk actions
         public string ColorName = "";       // "" = none, otherwise one of AccountColors.Names
+        public bool ProxyAuto;              // the proxy was handed out automatically from the proxy pool
         public string Proxy = "";           // optional proxy for this app's web requests for the account: host:port or http://user:pass@host:port
         public long LastCheckTicks;         // last login check (UTC ticks), 0 = never
         public string LastCheck = "";       // ok | expired | locked | error
@@ -59,6 +60,7 @@ namespace AltHub
     {
         public List<Account> Accounts = new List<Account>();
         public List<PrivateServer> Servers = new List<PrivateServer>();
+        public string ProxyPool = "";       // the proxy list (one per line); holds passwords, so it lives in the encrypted file
     }
 
     // The colours an account can be tagged with (shown as a stripe on its row / card).
@@ -227,6 +229,8 @@ namespace AltHub
         public long HealthLastTicks;
         public bool AutoInstallUpdates = false;     // install a new version by itself when AltHub starts
         public string RobloxVersion = "";           // Roblox version folder (version-xxxx) AltHub launches; "" = whatever Roblox installed
+        public bool ProxyAuto = false;              // give new accounts a proxy from the pool automatically
+        public int ProxyPerAccounts = 1;            // accounts per proxy: 1 = each account its own, 3 = three share one
         public string CpuCapMode = "Off";           // Off | Each (every Roblox window) | Total (all together)
         public int CpuCapPercent = 10;              // percent of the whole PC
         public bool CpuCapSkipActive = true;        // the Roblox window you are playing is not limited

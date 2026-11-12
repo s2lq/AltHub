@@ -20,6 +20,7 @@ namespace AltHub
         public static AppSettings Settings = new AppSettings();
         public static List<Account> Accounts = new List<Account>();
         public static List<PrivateServer> Servers = new List<PrivateServer>();
+        public static string ProxyPool = "";
         public static string Password;            // null = DPAPI mode
         public static bool Loaded;                // never overwrite the file until it loaded successfully
         static readonly byte[] Entropy = Encoding.UTF8.GetBytes("RobloxMultiHub.v1");
@@ -115,6 +116,7 @@ namespace AltHub
                 AccountFile f = Json.From<AccountFile>(json);
                 Accounts = (f != null && f.Accounts != null) ? f.Accounts : new List<Account>();
                 Servers = (f != null && f.Servers != null) ? f.Servers : new List<PrivateServer>();
+                ProxyPool = (f != null && f.ProxyPool != null) ? f.ProxyPool : "";
                 if (Servers.Count == 0) Servers = LoadServersCopy(password);      // an older build may have dropped them from accounts.dat
                 MigratePrivate();
                 Password = password;
@@ -153,6 +155,7 @@ namespace AltHub
                 AccountFile f = new AccountFile();
                 f.Accounts = Accounts;
                 f.Servers = Servers;
+                f.ProxyPool = ProxyPool;
                 byte[] enc = Encrypt(Encoding.UTF8.GetBytes(Json.To(f)), Password);
                 AtomicWrite(AccountsPath, enc);
                 AccountFile sf = new AccountFile();

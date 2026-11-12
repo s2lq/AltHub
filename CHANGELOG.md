@@ -5,6 +5,7 @@ AltHub is a fork of [Roblox MultiHub](https://github.com/Roblox-MultiHub/Roblox-
 ## 1.5.0
 
 - **Account health dashboard** (new Health tab): status of every login (working, signed out, locked), last check, last launch, crashes in the last 7 days, and what to do. One-click recovery: check all, re-login in the browser with the username and saved password filled in, refresh cookies, unlock help, remove broken accounts, export problems as CSV. Logins are also checked quietly every few hours.
+- **Automatic proxies**: paste a proxy list and hand them out one per account or several accounts per proxy (3 per proxy, ...), automatically for new accounts too, with a proxy test.
 - **Maximum CPU limit** (Perf page): cap Roblox at a percentage of the whole PC, per window or all windows together, with the window you are playing left alone.
 - **Roblox version viewer and changer** (Settings): see the installed and newest Roblox versions and Roblox's recent releases, download one from Roblox's own servers into AltHub's folder and launch it.
 - **Event log**: every crash, kick, failed launch, relaunch, signed-out or locked account and recovery, per account, with CSV export.

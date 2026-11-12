@@ -1512,6 +1512,7 @@ namespace AltHub
                 a.Username = u.Name;
                 a.DisplayName = u.Display;
                 a.Order = Store.Accounts.Count;
+                ProxyPool.ForNew(a);
                 Store.Accounts.Add(a);
                 AddLog("Added account " + u.Name + ".");
             }
