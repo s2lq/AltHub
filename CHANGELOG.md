@@ -13,7 +13,7 @@ AltHub is a fork of [Roblox MultiHub](https://github.com/Roblox-MultiHub/Roblox-
 - **First-run setup**: a short wizard picks the language and theme, multi-instance, a quick config, where to keep your data (normal or portable) and how to add your first account.
 - **Quick configs** (Perf page): one click from *Ultimate performance* (lowest graphics, 15 FPS, about 250 MB and 6 % CPU per window) through *Performance*, *Balanced* and *Quality* to *Best visuals* (high graphics, 120 FPS, no limits).
 - **Shareable configs**: export your settings as a `.athcfg` file and import someone else's. Accounts, cookies, passwords, proxies, webhooks and private servers are never included.
-- **Portable mode**: keep all data in an `AltHubData` folder next to AltHub.exe (for a USB stick) and switch back any time.
+- **Portable mode**: keep all data in an `AltHubData` folder next to AltHub.exe (for a USB stick), protected by a password you set (or an explicit "accept the risk" choice), and switch back any time.
 - **Language packs**: Spanish, Portuguese, French, German, Italian, Turkish, Russian, Polish, Indonesian and Dutch for the main interface; more can be added as `lang\<code>.json`.
 - **Themes**: 11 presets (Dark, Midnight, AMOLED, Slate, Ocean, Forest, Rose, Sunset, Light, Mint, Sand), your own colour schemes with an editor, and import / export as `.aththeme` files.
 - **Compact mode** (Ctrl+Shift+K) for small screens and a **mini window** (Ctrl+Shift+W): a small always-on-top launcher with a start / stop button per account.

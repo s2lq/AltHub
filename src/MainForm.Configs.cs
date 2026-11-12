@@ -1,4 +1,5 @@
 using System;
+using System.Drawing;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -121,6 +122,52 @@ namespace AltHub
             }
         }
 
+
+        // Portable data can be copied by anyone who gets the folder, so a password is required unless the user accepts the risk.
+        // Returns false when the user cancelled.
+        bool EnsurePortablePassword(IWin32Window owner)
+        {
+            if (Store.Password != null) return true;
+            while (true)
+            {
+                Form f = Dialogs.Make("Portable mode - protect your accounts", 520, 250);
+                Label msg = Ui.Lbl("Portable mode keeps your accounts in a folder you can carry around. Without a password anyone who copies that folder from this PC can read your Roblox cookies and log in as you.\r\n\r\nSet a password to protect them (recommended).", "");
+                msg.AutoSize = false; msg.Size = new Size(488, 120);
+                Dialogs.Put(f, msg, 16, 16);
+                RoundButton setPw = Ui.Btn("Set a password", 150, null, "primary");
+                setPw.DialogResult = DialogResult.OK;
+                Dialogs.Put(f, setPw, 16, 150);
+                RoundButton cancel = Ui.Btn("Cancel", 90, null, "");
+                cancel.DialogResult = DialogResult.Cancel;
+                Dialogs.Put(f, cancel, 176, 150);
+                LinkLabel risk = new LinkLabel();
+                risk.Text = Lang.T("Continue without a password (I accept the risk)");
+                risk.AutoSize = true;
+                risk.Font = Theme.Small;
+                risk.LinkColor = Theme.Muted;
+                risk.ActiveLinkColor = Theme.Text;
+                risk.BackColor = Color.Transparent;
+                bool accepted = false;
+                risk.Click += delegate
+                {
+                    if (MessageBox.Show(f, "Without a password, the accounts in the portable folder are only encrypted for this Windows user, so on another PC they will not open, and anyone with access to this PC can still use them.\r\n\r\nI understand and accept the risk.",
+                        "Accept the risk", MessageBoxButtons.YesNo, MessageBoxIcon.Warning) == DialogResult.Yes) { accepted = true; f.DialogResult = DialogResult.Abort; }
+                };
+                Dialogs.Put(f, risk, 16, 206);
+                Theme.Apply(f);
+                DialogResult r = f.ShowDialog(owner);
+                f.Dispose();
+                if (accepted) return true;
+                if (r != DialogResult.OK) return false;
+                string pw = Dialogs.AskPassword(owner, "Set a password", "Choose a password for your accounts file.\r\nIf you forget it, the accounts CANNOT be recovered!", true);
+                if (pw == null) continue;
+                Store.Password = pw;
+                Store.SaveAccounts();
+                UpdateStorageLabel();
+                return true;
+            }
+        }
+
         void TogglePortable()
         {
             bool on = !Store.IsPortable;
@@ -129,6 +176,7 @@ namespace AltHub
                   (Store.Password == null ? "\nNote: your accounts are encrypted for THIS Windows user. To use the folder on another PC, set a password first (Settings > Security)." : "")
                 : "Switch back to normal mode?\n\nYour data is copied back to %AppData%\\AltHub and AltHub restarts.";
             if (MessageBox.Show(this, warn, "Portable mode", MessageBoxButtons.OKCancel, MessageBoxIcon.Question) != DialogResult.OK) return;
+            if (on && !EnsurePortablePassword(this)) return;
             string err = Store.SetPortable(on);
             if (err != null) { MessageBox.Show(this, "Could not switch: " + err, "Portable mode", MessageBoxButtons.OK, MessageBoxIcon.Warning); return; }
             AddLog(on ? "Portable mode on - restarting." : "Normal mode on - restarting.");

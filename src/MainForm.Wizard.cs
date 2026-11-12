@@ -190,6 +190,7 @@ namespace AltHub
             else { ApplyTheme(); SyncSettingsControls(); }
             if (multi) MultiInstance.Start();
 
+            if (portable && !Store.IsPortable && !EnsurePortablePassword(this)) portable = false;
             if (portable != Store.IsPortable)
             {
                 string err = Store.SetPortable(portable);

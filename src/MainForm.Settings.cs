@@ -489,6 +489,7 @@ namespace AltHub
         void RemovePassword()
         {
             if (Store.Password == null) { AddLog("No password is set - already using Windows encryption."); return; }
+            if (Store.IsPortable && MessageBox.Show(this, "You are in portable mode: without a password anyone who copies the AltHubData folder from this PC can read your accounts.\r\n\r\nI accept the risk and want to remove the password.", "Accept the risk", MessageBoxButtons.YesNo, MessageBoxIcon.Warning) != DialogResult.Yes) return;
             if (MessageBox.Show(this, "Remove the password and encrypt with your Windows account instead?", "Use Windows encryption", MessageBoxButtons.YesNo, MessageBoxIcon.Question) != DialogResult.Yes) return;
             Store.Password = null;
             Store.SaveAccounts();
