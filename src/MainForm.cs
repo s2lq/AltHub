@@ -588,7 +588,7 @@ namespace AltHub
                 if (Store.Settings.ShowPresence && tickN % Math.Max(10, Store.Settings.PresenceSec) == 0) RefreshPresence();
                 if (tickN % Math.Max(10, Store.Settings.WatcherSec) == 0) RunWatcher();
                 RobuxTick();
-                if (tickN % 5 == 0) RamCap.Tick(AddLog);
+                if (tickN % 5 == 0) { RamCap.Tick(AddLog); CpuCap.Tick(AddLog); }
                 if (tickN % 5 == 0) SystemThemeTick();
                 if (tickN % 3 == 0) MuteTick();
                 HealthTick();
@@ -741,6 +741,7 @@ namespace AltHub
             {
                 if (tray != null) { tray.Visible = false; tray.Dispose(); Notify.Tray = null; }
                 RamCap.ReleaseAll();
+                CpuCap.Release();
                 if (WindowState == FormWindowState.Normal)
                 {
                     Store.Settings.WinW = ClientSize.Width;

@@ -70,6 +70,10 @@ namespace AltHub
                 "OFF by default. Rotating keeps cookies fresh, but it signs the account out of its other sessions (for example the website in your browser).",
                 chkRefreshLaunch);
 
+            p.Opt("See the Roblox versions on this PC and choose the one AltHub launches.",
+                "Shows your installed Roblox, the newest public version and Roblox's recent releases. You can download a release from Roblox's own servers into AltHub's folder (your normal Roblox install is not touched) and tell AltHub to launch it. A chosen version is started with the direct launch method. Roblox only lets recent clients join games, so very old versions usually show 'out of date'.",
+                Ui.Btn("Roblox version...", 180, delegate { ShowRobloxVersions(); }, ""));
+
             p.Section("Account status");
             chkPresence = Ui.Chk("Show online / in-game status", S.ShowPresence, null);
             p.Opt("Colored dot and text for every account.",

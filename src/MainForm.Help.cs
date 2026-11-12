@@ -176,6 +176,10 @@ namespace AltHub
                     "Settings > Updates - AltHub checks this project's GitHub releases when it starts. When a newer version exists it asks whether to install it: it downloads the release zip over HTTPS, checks it against the SHA-256 checksum published with the release, replaces AltHub.exe (the old one is renamed to AltHub.exe.old and removed on the next start) and restarts. 'Install updates automatically' skips the question.",
                     "Windows SmartScreen - releases are signed once the SignPath setup in docs/SIGNING.md is done; until then Windows may show a warning for the downloaded exe." },
 
+                new string[] { "Roblox version and CPU limit",
+                    "Roblox version - Settings > Roblox version... lists the Roblox clients on this PC, the newest public version and Roblox's recent releases. Download a release (it comes from Roblox's own servers and goes into AltHub's own folder - your normal Roblox install is never changed) and press 'Use selected' to make AltHub launch it. 'Automatic' goes back to the Roblox that Roblox installed. A chosen version is started with the direct launch method. Roblox only lets recent clients join games, so very old versions usually show 'out of date'.",
+                    "Maximum CPU (Perf page) - caps how much of the CPU Roblox may use, either per window or for all windows together, as a percentage of the whole PC. The window you are playing can be left alone. A capped window runs slower instead of hogging the CPU." },
+
                 new string[] { "Mute and memory",
                     "Mute - select accounts and press Mute in the footer (or Ctrl+Shift+M). Their Roblox sound is muted through the Windows volume mixer: right away if they run, otherwise as soon as their window starts. Press it again to unmute. A 'Muted' chip shows in the list.",
                     "Memory per Roblox window (Perf page) - keeps every window around 250 MB (a window that struggles is moved to 500 MB). The window you are playing can stay unlimited." },

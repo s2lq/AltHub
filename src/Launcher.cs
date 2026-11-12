@@ -281,6 +281,8 @@ namespace AltHub
 
         public static string FindRobloxExe()
         {
+            string pinned = RobloxVersions.PinnedExe();
+            if (pinned != null) return pinned;
             try
             {
                 using (RegistryKey k = Registry.CurrentUser.OpenSubKey(@"Software\Classes\roblox-player\shell\open\command"))
@@ -616,7 +618,9 @@ namespace AltHub
                 if (!MultiInstance.Active && RobloxPids().Count > 0)
                     log(who + "WARNING: multi-instance is not active, so starting this will likely close your other Roblox windows.");
 
-                bool direct = Store.Settings.LaunchMethod != "Protocol";
+                string pinExe = RobloxVersions.PinnedExe();
+                bool direct = Store.Settings.LaunchMethod != "Protocol" || pinExe != null;      // a chosen Roblox version needs the direct method
+                if (pinExe != null) log(who + "using the chosen Roblox version " + Store.Settings.RobloxVersion + " (direct launch).");
                 string exe = FindRobloxExe();
                 if (direct && exe == null) { log(who + "Roblox was not found. Install it from roblox.com (or switch the launch method to Protocol in Settings)."); return false; }
                 if (exe != null) WriteClientSettings(exe);

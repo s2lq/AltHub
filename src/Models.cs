@@ -226,6 +226,10 @@ namespace AltHub
         public int HealthHours = 6;
         public long HealthLastTicks;
         public bool AutoInstallUpdates = false;     // install a new version by itself when AltHub starts
+        public string RobloxVersion = "";           // Roblox version folder (version-xxxx) AltHub launches; "" = whatever Roblox installed
+        public string CpuCapMode = "Off";           // Off | Each (every Roblox window) | Total (all together)
+        public int CpuCapPercent = 10;              // percent of the whole PC
+        public bool CpuCapSkipActive = true;        // the Roblox window you are playing is not limited
         public string RamCapMode = "Auto250";       // Off | Auto250 (250 MB, 500 MB when a window struggles) | Fixed250 | Fixed500
         public bool RamCapSkipActive = true;        // the Roblox window you are playing is not limited
 
