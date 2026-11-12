@@ -57,8 +57,7 @@ namespace AltHub
         public MainForm(bool minimized)
         {
             startMinimized = minimized;
-            Theme.SetAccent(Store.Settings.AccentHex);
-            Theme.Set(Theme.ResolveDark(Store.Settings.Theme));
+            Theme.Load(Store.Settings.Theme, Store.Settings.AccentHex);
             Text = "AltHub";
             Font = Theme.Base;
             DoubleBuffered = true;
@@ -84,6 +83,7 @@ namespace AltHub
             BuildHelpPage();
             ApplyTheme();
             ShowPage("Home");
+            ApplyCompact();
             RefreshAccountList();
             SetView(Store.Settings.View == "Cards");
 
@@ -124,6 +124,7 @@ namespace AltHub
             Label sub = Ui.Lbl(Lang.T("Multi-account launcher"), "muted");
             sub.Location = new Point(21, 43);
             topBar.Controls.Add(sub);
+            topSub = sub;
 
             statRun = new StatBlock(Lang.T("Running"), 140);
             statCpu = new StatBlock(Lang.T("Roblox CPU"), 160);
@@ -699,22 +700,6 @@ namespace AltHub
             if (Store.Settings.CheckLoginsAtStartup) CheckLoginsOnStartup();
             if (Store.Settings.CheckUpdates) CheckUpdatesOnStartup();
             if (!string.IsNullOrEmpty(Store.Settings.StartupPreset)) RunStartupPreset();
-        }
-
-        void FirstRun()
-        {
-            if (Store.Settings.FirstRunDone) return;
-            string msg = "Welcome to AltHub!\r\n\r\n"
-                + "To run several Roblox accounts at once the app has to hold Roblox's 'single instance' lock objects "
-                + "(ROBLOX_singletonMutex / ROBLOX_singletonEvent). Nothing is injected into Roblox or modified.\r\n\r\n"
-                + "Please know: Roblox's anti-cheat team has said that running multiple clients may be treated as abusive behaviour, "
-                + "and Roblox can change the client at any time. You use this at your own risk, with your own accounts.\r\n\r\n"
-                + "Turn multi-instance ON now?  (You can change this any time in Settings.)";
-            DialogResult r = MessageBox.Show(this, msg, "AltHub - first run", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
-            Store.Settings.FirstRunDone = true;
-            Store.Settings.MultiInstance = r == DialogResult.Yes;
-            Store.SaveSettings();
-            SyncSettingsControls();
         }
 
         void StartupChecks()

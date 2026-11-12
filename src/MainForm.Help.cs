@@ -149,7 +149,7 @@ namespace AltHub
 
                 new string[] { "Keyboard shortcuts",
                     "In the AltHub window - Ctrl+L launch selected, Ctrl+Shift+L launch all, Ctrl+Shift+S stop all, Ctrl+Shift+M mute / unmute selected, Ctrl+N add account (browser login), Ctrl+E or F2 edit, Ctrl+F search (Esc clears), Ctrl+R check logins, F5 refresh status and Robux, Ctrl+G switch List / Cards, Ctrl+T tags menu, Ctrl+A select all, Delete remove.",
-                    "Pages - Ctrl+1 Home, 2 Launch, 3 Servers, 4 Private, 5 Health, 6 Layout, 7 Monitor, 8 Presets, 9 Perf, 0 Help, Ctrl+, Settings, Ctrl+M Macro, Ctrl+Tab / Ctrl+Shift+Tab next / previous page.",
+                    "Pages - Ctrl+1 Home, 2 Launch, 3 Servers, 4 Private, 5 Health, 6 Layout, 7 Monitor, 8 Presets, 9 Perf, 0 Help, Ctrl+, Settings, Ctrl+M Macro, Ctrl+Shift+K compact mode, Ctrl+Shift+W mini window, Ctrl+Tab / Ctrl+Shift+Tab next / previous page.",
                     "From any program (global) - Ctrl+Alt+F5 launch all, Ctrl+Alt+F6 stop all, Ctrl+Alt+F7 show / hide AltHub, Ctrl+Alt+F9 arrange windows, Ctrl+Alt+F10 / F11 focus the previous / next Roblox window." },
 
                 new string[] { "Private servers (the Private tab)",

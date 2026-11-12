@@ -26,10 +26,31 @@ namespace AltHub
 
         static Theme() { Set(true); }
 
+        // The colour scheme for a Theme setting: Dark, Light, System (follows Windows), a preset name or one of your own.
+        public static ThemeDef Resolve(string setting)
+        {
+            if (setting == "System") return Themes.Find(ResolveDark("System") ? "Dark" : "Light");
+            ThemeDef d = Themes.Find(string.IsNullOrEmpty(setting) ? "Dark" : setting);
+            return d != null && d.Valid ? d : Themes.Find("Dark");
+        }
+
+        // Applies the scheme of a Theme setting and the accent (your own accent wins, otherwise the scheme's).
+        public static void Load(string setting, string accentHex)
+        {
+            ThemeDef d = Resolve(setting);
+            Dark = d.Dark;
+            Bg = Themes.Parse(d.Bg); Panel = Themes.Parse(d.Panel); Panel2 = Themes.Parse(d.Panel2); Border = Themes.Parse(d.Border);
+            Text = Themes.Parse(d.Text); Muted = Themes.Parse(d.Muted); Sel = Themes.Parse(d.Sel);
+            Color acc = string.IsNullOrEmpty(accentHex) ? Themes.Parse(d.Accent) : Themes.Parse(accentHex);
+            Accent = acc.IsEmpty ? Color.FromArgb(99, 102, 241) : acc;
+        }
+
         // "Dark" / "Light" / "System" (follows the Windows app mode) -> dark?
         public static bool ResolveDark(string setting)
         {
             if (setting == "Light") return false;
+            ThemeDef named = (setting == "System" || string.IsNullOrEmpty(setting) || setting == "Dark") ? null : Themes.Find(setting);
+            if (named != null) return named.Dark;
             if (setting != "System") return true;
             try
             {
@@ -298,7 +319,7 @@ namespace AltHub
         public static Label Lbl(string text, string tag)
         {
             Label l = new Label();
-            l.Text = text;
+            l.Text = Lang.T(text);
             l.AutoSize = true;
             l.Tag = tag;
             l.Font = tag == "section" ? Theme.Bold : (tag == "muted" ? Theme.Small : (tag == "title" ? Theme.Big : Theme.Base));
@@ -321,7 +342,7 @@ namespace AltHub
             RoundButton b = new RoundButton();
             b.Kind = kind ?? "";
             b.Tag = kind ?? "";
-            b.Text = text;
+            b.Text = Lang.T(text);
             b.FitText(width);
             if (click != null) b.Click += click;
             return b;
@@ -349,7 +370,7 @@ namespace AltHub
         public static CheckBox Chk(string text, bool value, string tip)
         {
             CheckBox c = new RoundCheck();
-            c.Text = text;
+            c.Text = Lang.T(text);
             c.AutoSize = true;
             c.Checked = value;
             c.Font = Theme.Base;
@@ -360,7 +381,7 @@ namespace AltHub
         public static RadioButton Rad(string text, bool value, string tip)
         {
             RadioButton r = new RoundRadio();
-            r.Text = text;
+            r.Text = Lang.T(text);
             r.AutoSize = true;
             r.Checked = value;
             r.Font = Theme.Base;
@@ -389,7 +410,7 @@ namespace AltHub
 
         public static ToolStripMenuItem Item(string text, EventHandler click)
         {
-            ToolStripMenuItem i = new ToolStripMenuItem(text);
+            ToolStripMenuItem i = new ToolStripMenuItem(Lang.T(text));
             i.BackColor = Theme.Panel;
             i.ForeColor = Theme.Text;
             if (click != null) i.Click += click;
@@ -446,6 +467,7 @@ namespace AltHub
         // Plain wrapped paragraph (page subtitles and the rare free text).
         public Label Note(string text)
         {
+            text = Lang.T(text);
             Label l = Ui.Lbl(text, "muted");
             l.AutoSize = false;
             l.Width = Width - PadX * 2;
@@ -536,6 +558,7 @@ namespace AltHub
         // A short line of text with an (i) at its end.
         public void Hint(string shortText, string tip)
         {
+            shortText = Lang.T(shortText);
             Label l = Ui.Lbl(shortText, "muted");
             l.Location = new Point(PadX + 2, Y + 2);
             Host.Controls.Add(l);

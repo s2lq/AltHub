@@ -54,6 +54,9 @@ Useful for grinding, trading, holding items on alt accounts, or just keeping all
 - **Automatic proxies** - one per account or several accounts per proxy
 - **Maximum CPU limit** and **Roblox version viewer and changer**
 - **Account health dashboard** and **event log** - which logins work, crashes and kicks per account, one-click recovery
+- **First-run setup**, **quick configs** (Ultimate performance to Best visuals) and **shareable configs**
+- **Portable mode**, **11 theme presets** with your own colour schemes, **10 language packs**
+- **Compact mode** and a **mini window** launcher
 - **Auto-updater** - downloads, verifies (SHA-256) and installs new releases
 - **Mute button** - mute the Roblox sound of selected accounts, before launch or while running
 - **Memory limit per Roblox window** - about 250 MB each (500 MB when a window struggles)

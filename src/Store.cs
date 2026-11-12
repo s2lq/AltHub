@@ -29,10 +29,43 @@ namespace AltHub
 
         // dataDir: used by the admin memory helper, which may run under another Windows account (UAC with
         // an administrator's password) and must still use YOUR data folder.
+        // Portable mode: a file named portable.txt next to AltHub.exe makes AltHub keep all its data in an AltHubData folder
+        // next to the exe instead of in %AppData%.
+        public static string ExeDir
+        {
+            get { try { return Path.GetDirectoryName(System.Windows.Forms.Application.ExecutablePath); } catch (Exception) { return AppDomain.CurrentDomain.BaseDirectory; } }
+        }
+        public static string PortableMarker { get { return Path.Combine(ExeDir, "portable.txt"); } }
+        public static string PortableDir { get { return Path.Combine(ExeDir, "AltHubData"); } }
+        public static string NormalDir { get { return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "AltHub"); } }
+        public static bool IsPortable { get { return File.Exists(PortableMarker); } }
+
+        // Moves your data into the portable folder (or back to %AppData%) and switches the marker. Takes effect after a restart.
+        // Returns null on success, otherwise what went wrong.
+        public static string SetPortable(bool on)
+        {
+            try
+            {
+                string from = on ? NormalDir : PortableDir, to = on ? PortableDir : NormalDir;
+                if (on)
+                {
+                    try { Directory.CreateDirectory(PortableDir); File.WriteAllText(Path.Combine(PortableDir, ".write-test"), "x"); File.Delete(Path.Combine(PortableDir, ".write-test")); }
+                    catch (Exception) { return "AltHub cannot write next to AltHub.exe (" + ExeDir + "). Move AltHub to a folder you can write to, for example your Desktop."; }
+                }
+                SaveSettings();
+                SaveAccounts();
+                if (Directory.Exists(from) && !string.Equals(Path.GetFullPath(from), Path.GetFullPath(to), StringComparison.OrdinalIgnoreCase)) CopyDir(from, to, true);
+                if (on) File.WriteAllText(PortableMarker, "AltHub portable mode: all data is in the AltHubData folder next to AltHub.exe. Delete this file (after copying AltHubData to %AppData%\\AltHub) to go back to normal mode.\r\n");
+                else File.Delete(PortableMarker);
+                return null;
+            }
+            catch (Exception ex) { Log.Error("SetPortable", ex); return ex.Message; }
+        }
+
         public static void Init(string dataDir)
         {
-            Dir = !string.IsNullOrEmpty(dataDir) ? dataDir : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "AltHub");
-            if (string.IsNullOrEmpty(dataDir) && !Directory.Exists(Dir))
+            Dir = !string.IsNullOrEmpty(dataDir) ? dataDir : (IsPortable ? PortableDir : NormalDir);
+            if (string.IsNullOrEmpty(dataDir) && !IsPortable && !Directory.Exists(Dir))
             {
                 // First run after the rename: bring over the data of the original Roblox MultiHub, if it is there.
                 string old = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "RobloxMultiHub");
@@ -48,11 +81,13 @@ namespace AltHub
             LoadSettings();
         }
 
-        static void CopyDir(string from, string to)
+        static void CopyDir(string from, string to) { CopyDir(from, to, false); }
+
+        static void CopyDir(string from, string to, bool overwrite)
         {
             Directory.CreateDirectory(to);
-            foreach (string f in Directory.GetFiles(from)) File.Copy(f, Path.Combine(to, Path.GetFileName(f)), false);
-            foreach (string d in Directory.GetDirectories(from)) CopyDir(d, Path.Combine(to, Path.GetFileName(d)));
+            foreach (string f in Directory.GetFiles(from)) File.Copy(f, Path.Combine(to, Path.GetFileName(f)), overwrite);
+            foreach (string d in Directory.GetDirectories(from)) CopyDir(d, Path.Combine(to, Path.GetFileName(d)), overwrite);
         }
 
         public static void LoadSettings()

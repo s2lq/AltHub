@@ -46,6 +46,8 @@ namespace AltHub
                 case Keys.Control | Keys.Oemcomma: ShowPage("Settings"); return true;
                 case Keys.Control | Keys.Tab: StepPage(1); return true;
                 case Keys.Control | Keys.Shift | Keys.Tab: StepPage(-1); return true;
+                case Keys.Control | Keys.Shift | Keys.W: ToggleMini(); return true;
+                case Keys.Control | Keys.Shift | Keys.K: SetCompact(!Store.Settings.CompactUi); return true;
                 case Keys.Control | Keys.Shift | Keys.P: ShowPage("Private"); return true;
                 case Keys.Escape:
                     if (tbSearch != null && tbSearch.Focused && tbSearch.Text.Length > 0) { tbSearch.Text = ""; return true; }

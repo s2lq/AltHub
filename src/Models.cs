@@ -165,6 +165,8 @@ namespace AltHub
         public bool FirstRunDone = false;
         public bool MultiInstance = false;
         public string Theme = "Dark";
+        public bool CompactUi = false;               // tighter main window (smaller bars and margins)
+        public int MiniX = -1, MiniY = -1;           // last position of the mini window
         public string Language = "en";               // UI language code; "en" = English (default)
         public string LaunchMethod = "Protocol";    // Protocol (roblox-player: link, like Roblox Account Manager) | Direct
         public bool LaunchDefaultsV2 = false;       // set once the launch method was switched to the RAM-style default
@@ -228,6 +230,7 @@ namespace AltHub
         public int HealthHours = 6;
         public long HealthLastTicks;
         public bool AutoInstallUpdates = false;     // install a new version by itself when AltHub starts
+        public List<ThemeDef> CustomThemes = new List<ThemeDef>();   // colour schemes you made or imported
         public string RobloxVersion = "";           // Roblox version folder (version-xxxx) AltHub launches; "" = whatever Roblox installed
         public bool ProxyAuto = false;              // give new accounts a proxy from the pool automatically
         public int ProxyPerAccounts = 1;            // accounts per proxy: 1 = each account its own, 3 = three share one

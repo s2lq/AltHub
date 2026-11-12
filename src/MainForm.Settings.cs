@@ -171,10 +171,16 @@ namespace AltHub
                 "Pick one of the automatic backups. Your current accounts file is kept next to it as accounts.dat.before-restore, and the app restarts with the backup loaded. Backups hold your accounts, their settings and your private server list.",
                 Ui.Btn("Restore a backup...", 180, delegate { RestoreBackupClick(); }, ""));
 
+            BuildCompactSection(p);
+            BuildShareSection(p);
+
             p.Section("Appearance & startup");
-            cbTheme = Ui.Cmb(170, "Dark", "Light", "Follow Windows");
-            cbTheme.SelectedIndex = S.Theme == "Light" ? 1 : (S.Theme == "System" ? 2 : 0);
-            p.Opt("Dark, light, or the same as Windows.", "Switches the whole window immediately. 'Follow Windows' changes with the Windows app mode setting (Settings > Personalization > Colors).", Ui.Fld("Theme", 120), cbTheme);
+            cbTheme = Ui.Cmb(190, "Dark");
+            p.Opt("Pick a theme: dark, light, the same as Windows, or a preset.",
+                "Switches the whole window immediately. 'Follow Windows' changes with the Windows app mode setting (Settings > Personalization > Colors). The presets (Midnight, AMOLED, Slate, Ocean, Forest, Rose, Sunset, Mint, Sand) change every colour; the accent colour below still overrides the theme's own accent.",
+                Ui.Fld("Theme", 120), cbTheme);
+            FillThemeCombo();
+            BuildThemeButtons(p);
             List<string[]> langs = Lang.Available();
             string[] langNames = new string[langs.Count];
             for (int i = 0; i < langs.Count; i++) langNames[i] = langs[i][1];
@@ -312,7 +318,7 @@ namespace AltHub
             }
             UpdateStorageLabel();
             SyncSystemControls();
-            if (cbTheme != null) cbTheme.SelectedIndex = S.Theme == "Light" ? 1 : (S.Theme == "System" ? 2 : 0);
+            FillThemeCombo();
             loadingSettings = was;
             if (S.MultiInstance) MultiInstance.Start();
         }
@@ -401,9 +407,9 @@ namespace AltHub
         void OnThemeChanged()
         {
             if (loadingSettings) return;
-            Store.Settings.Theme = cbTheme.SelectedIndex == 1 ? "Light" : (cbTheme.SelectedIndex == 2 ? "System" : "Dark");
+            Store.Settings.Theme = Themes.SettingFromName(cbTheme.Text);
             Store.SaveSettings();
-            Theme.Set(Theme.ResolveDark(Store.Settings.Theme));
+            Theme.Load(Store.Settings.Theme, Store.Settings.AccentHex);
             ApplyTheme();
             OnAccountSelectionChanged();
             UpdateMultiChip();

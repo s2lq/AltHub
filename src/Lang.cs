@@ -19,7 +19,7 @@ namespace AltHub
         {
             List<string[]> list = new List<string[]>();
             list.Add(new string[] { "en", "English" });
-            list.Add(new string[] { "nl", "Nederlands (Dutch)" });
+            for (int i = 0; i < LangPacks.Codes.Length; i++) list.Add(new string[] { LangPacks.Codes[i], LangPacks.Names[i] });
             try
             {
                 string dir = Path.Combine(Store.Dir, "lang");
@@ -27,7 +27,7 @@ namespace AltHub
                     foreach (string f in Directory.GetFiles(dir, "*.json"))
                     {
                         string code = Path.GetFileNameWithoutExtension(f);
-                        if (code == "en" || code == "nl") continue;
+                        if (code == "en" || Array.IndexOf(LangPacks.Codes, code) >= 0) continue;
                         list.Add(new string[] { code, code });
                     }
             }
@@ -42,6 +42,7 @@ namespace AltHub
             Current = string.IsNullOrEmpty(code) ? "en" : code;
             map.Clear();
             if (Current == "en") return;
+            foreach (KeyValuePair<string, string> kv in LangPacks.Get(Current)) map[kv.Key] = kv.Value;
             if (Current == "nl") foreach (KeyValuePair<string, string> kv in Dutch) map[kv.Key] = kv.Value;
 
             // a lang file on disk extends or overrides the built-in table

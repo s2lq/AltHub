@@ -63,6 +63,7 @@ namespace AltHub
         void BuildSystemSettings(PageBuilder p)
         {
             AppSettings S = Store.Settings;
+            swatches.Clear();
             p.Section("Accent colour");
             accentRow = new FlowLayoutPanel();
             accentRow.Size = new Size(PageW - PageBuilder.PadX * 2, 34);
@@ -81,6 +82,9 @@ namespace AltHub
             RoundButton custom = Ui.Btn("Custom...", 90, delegate { PickCustomAccent(); }, "");
             custom.Margin = new Padding(8, 0, 0, 0);
             accentRow.Controls.Add(custom);
+            RoundButton themeAcc = Ui.Btn("Theme's own", 110, delegate { SetAccent(""); }, "");
+            themeAcc.Margin = new Padding(6, 0, 0, 0);
+            accentRow.Controls.Add(themeAcc);
             p.Add(accentRow);
             p.Hint("Highlights, buttons and headings use this colour.", "Applied immediately. Pick one of the swatches or press Custom... to choose any colour.");
 
@@ -174,7 +178,7 @@ namespace AltHub
         {
             Store.Settings.AccentHex = hex;
             Store.SaveSettings();
-            Theme.SetAccent(hex);
+            Theme.Load(Store.Settings.Theme, hex);
             ApplyTheme();
             MarkAccent();
         }
@@ -201,7 +205,7 @@ namespace AltHub
             if (Store.Settings.Theme != "System") return;
             bool dark = Theme.ResolveDark("System");
             if (dark == Theme.Dark) return;
-            Theme.Set(dark);
+            Theme.Load("System", Store.Settings.AccentHex);
             ApplyTheme();
             OnAccountSelectionChanged();
             UpdateMultiChip();
@@ -212,6 +216,7 @@ namespace AltHub
         {
             trayMenu = Ui.Menu();
             trayMenu.Items.Add(Ui.Item("Show AltHub", delegate { ShowFromTray(); }));
+            trayMenu.Items.Add(Ui.Item("Mini window", delegate { ToggleMini(); }));
             trayMenu.Items.Add(new ToolStripSeparator());
             trayMenu.Items.Add(Ui.Item("Launch all", delegate { TrayLaunchAll(); }));
             trayMenu.Items.Add(Ui.Item("Stop all", delegate { StopAll(); }));

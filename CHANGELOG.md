@@ -10,8 +10,14 @@ AltHub is a fork of [Roblox MultiHub](https://github.com/Roblox-MultiHub/Roblox-
 - **Roblox version viewer and changer** (Settings): see the installed and newest Roblox versions and Roblox's recent releases, download one from Roblox's own servers into AltHub's folder and launch it.
 - **Event log**: every crash, kick, failed launch, relaunch, signed-out or locked account and recovery, per account, with CSV export.
 - **Auto-updater**: AltHub downloads a new release, verifies its SHA-256 checksum, replaces itself and restarts (or just asks first). Optional automatic installs.
+- **First-run setup**: a short wizard picks the language and theme, multi-instance, a quick config, where to keep your data (normal or portable) and how to add your first account.
+- **Quick configs** (Perf page): one click from *Ultimate performance* (lowest graphics, 15 FPS, about 250 MB and 6 % CPU per window) through *Performance*, *Balanced* and *Quality* to *Best visuals* (high graphics, 120 FPS, no limits).
+- **Shareable configs**: export your settings as a `.athcfg` file and import someone else's. Accounts, cookies, passwords, proxies, webhooks and private servers are never included.
+- **Portable mode**: keep all data in an `AltHubData` folder next to AltHub.exe (for a USB stick) and switch back any time.
+- **Language packs**: Spanish, Portuguese, French, German, Italian, Turkish, Russian, Polish, Indonesian and Dutch for the main interface; more can be added as `lang\<code>.json`.
+- **Themes**: 11 presets (Dark, Midnight, AMOLED, Slate, Ocean, Forest, Rose, Sunset, Light, Mint, Sand), your own colour schemes with an editor, and import / export as `.aththeme` files.
+- **Compact mode** (Ctrl+Shift+K) for small screens and a **mini window** (Ctrl+Shift+W): a small always-on-top launcher with a start / stop button per account.
 - **Code signing setup** with SignPath in the release workflow (see docs/SIGNING.md); runs once the SignPath secrets are added.
-- Fixed: the second row of tabs (Presets, Perf, Macro, Help, Settings) was missing until the window was resized on the first start.
 
 ## 1.4.0
 

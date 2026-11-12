@@ -54,8 +54,7 @@ namespace AltHub
 
             Store.Init();
             Lang.Init();
-            Theme.SetAccent(Store.Settings.AccentHex);
-            Theme.Set(Theme.ResolveDark(Store.Settings.Theme));
+            Theme.Load(Store.Settings.Theme, Store.Settings.AccentHex);
             DarkMode.Apply(Theme.Dark);
             if (!Unlock()) return;
 
