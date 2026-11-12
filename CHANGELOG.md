@@ -17,6 +17,8 @@ AltHub is a fork of [Roblox MultiHub](https://github.com/Roblox-MultiHub/Roblox-
 - **Language packs**: Spanish, Portuguese, French, German, Italian, Turkish, Russian, Polish, Indonesian and Dutch for the main interface; more can be added as `lang\<code>.json`.
 - **Themes**: 11 presets (Dark, Midnight, AMOLED, Slate, Ocean, Forest, Rose, Sunset, Light, Mint, Sand), your own colour schemes with an editor, and import / export as `.aththeme` files.
 - **Compact mode** (Ctrl+Shift+K) for small screens and a **mini window** (Ctrl+Shift+W): a small always-on-top launcher with a start / stop button per account.
+- **Fast launch**: after the first account, the rest start about 0.35 s apart (up to 5 at once) and their windows are found together with one shared check, instead of waiting seconds between accounts. Detection polls every 150 ms.
+- **Community configs**: ready-made setups (AFK farm overnight, Low-end laptop, Alt army, Stream and play, Screenshots and showcase, Battery saver) and 10 more community themes (Dracula, Nord, Tokyo Night, Catppuccin, Gruvbox, Monokai, Cyberpunk, Solarized, Latte, Paper).
 - **Code signing setup** with SignPath in the release workflow (see docs/SIGNING.md); runs once the SignPath secrets are added.
 
 ## 1.4.0

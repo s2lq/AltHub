@@ -42,7 +42,18 @@ namespace AltHub
             ThemeDef.Make("Sunset",   true,  "#18100E", "#221816", "#32221E", "#4C342C", "#F6E8E2", "#A88A7E", "#4C2C1E", "#F97316"),
             ThemeDef.Make("Light",    false, "#F2F4F9", "#FFFFFF", "#F6F7FA", "#DEE2EB", "#1C1F26", "#666F82", "#E0E6FF", "#6366F1"),
             ThemeDef.Make("Mint",     false, "#ECF6F2", "#FAFEFC", "#F0F9F5", "#C8E0D6", "#18302A", "#5A7868", "#CEEEE0", "#10B981"),
-            ThemeDef.Make("Sand",     false, "#F5F0E6", "#FDFAF4", "#F6F1E7", "#DDD4C3", "#322C22", "#7A705E", "#ECE0C4", "#D97706")
+            ThemeDef.Make("Sand",     false, "#F5F0E6", "#FDFAF4", "#F6F1E7", "#DDD4C3", "#322C22", "#7A705E", "#ECE0C4", "#D97706"),
+            // community favourites
+            ThemeDef.Make("Dracula",      true,  "#1E1F29", "#282A36", "#343746", "#44475A", "#F8F8F2", "#8E94B8", "#44475A", "#BD93F9"),
+            ThemeDef.Make("Nord",         true,  "#242933", "#2E3440", "#3B4252", "#4C566A", "#ECEFF4", "#97A3BA", "#434C5E", "#88C0D0"),
+            ThemeDef.Make("Tokyo Night",  true,  "#16161E", "#1A1B26", "#24283B", "#343A55", "#C0CAF5", "#7982A9", "#2F3550", "#7AA2F7"),
+            ThemeDef.Make("Catppuccin",   true,  "#181825", "#1E1E2E", "#2A2B3C", "#3B3D52", "#CDD6F4", "#8F93AE", "#383A52", "#CBA6F7"),
+            ThemeDef.Make("Gruvbox",      true,  "#1D2021", "#282828", "#32302F", "#473F3B", "#EBDBB2", "#A89984", "#3C3836", "#FABD2F"),
+            ThemeDef.Make("Monokai",      true,  "#1E1F1C", "#272822", "#33342C", "#49483E", "#F8F8F2", "#A0A08A", "#3E3D32", "#A6E22E"),
+            ThemeDef.Make("Cyberpunk",    true,  "#0B0714", "#120C20", "#1C1330", "#33224F", "#F2E9FF", "#9D86C4", "#3A1E5A", "#FF2E97"),
+            ThemeDef.Make("Solarized",    true,  "#00212B", "#002B36", "#073642", "#17505E", "#EEE8D5", "#93A1A1", "#0B4452", "#2AA198"),
+            ThemeDef.Make("Latte",        false, "#E6E9EF", "#EFF1F5", "#E9ECF1", "#CCD0DA", "#4C4F69", "#7C7F93", "#D8DDF2", "#8839EF"),
+            ThemeDef.Make("Paper",        false, "#EDEDED", "#FAFAFA", "#F3F3F3", "#D9D9D9", "#222222", "#6E6E6E", "#E2E2E2", "#2563EB")
         };
 
         public static Color Parse(string hex)

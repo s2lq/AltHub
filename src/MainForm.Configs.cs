@@ -25,6 +25,17 @@ namespace AltHub
                 tag.Tag = "muted";
                 p.Opt(qc.Description, qc.Description, b, tag);
             }
+            p.Section("Community configs");
+            p.Note("Setups in the style people share: pick one and it is applied just like a quick config. You can still export your own as a .athcfg file.");
+            foreach (QuickConfig q in QuickConfigs.Community)
+            {
+                QuickConfig qc = q;
+                RoundButton b = Ui.Btn(qc.Name, 190, delegate { ApplyQuickConfig(qc); }, "");
+                Label tag = Ui.Fld(qc.Tagline, 400);
+                tag.ForeColor = Theme.Muted;
+                tag.Tag = "muted";
+                p.Opt(qc.Description, qc.Description, b, tag);
+            }
             lblQuickNow = Ui.Lbl("", "muted");
             p.Row(lblQuickNow);
         }

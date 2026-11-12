@@ -86,6 +86,11 @@ namespace AltHub
             p.Opt("Pause between accounts so your PC is not overloaded.",
                 "Starting many clients at the same instant often makes some of them fail to load. 6-10 seconds is a good default; lower it on a fast PC, raise it if windows fail to start.",
                 Ui.Fld("Seconds between accounts", 190), numDelay);
+            CheckBox chkFast = Ui.Chk("Fast launch: start several accounts at once", Store.Settings.FastLaunch, null);
+            chkFast.CheckedChanged += delegate { Store.Settings.FastLaunch = chkFast.Checked; Store.SaveSettings(); };
+            p.Opt("Starts the accounts less than a second apart instead of waiting between them.",
+                "After the first account AltHub starts the next ones 0.35 s apart, up to 5 starting at the same time, and finds all their windows with one shared check. The seconds above are then only used when fast launch is off, or when an account has its own FPS cap.",
+                chkFast);
 
             chkUseSaved = Ui.Chk("Use each account's own game when it has one", Store.Settings.UseSavedPerAccount, null);
             chkUseSaved.CheckedChanged += delegate { Store.Settings.UseSavedPerAccount = chkUseSaved.Checked; Store.SaveSettings(); };
@@ -479,6 +484,13 @@ namespace AltHub
             UpdateStatusCells();
         }
 
+        async Task LaunchGated(Account acc, LaunchSpec per, System.Threading.SemaphoreSlim gate)
+        {
+            try { await Launcher.LaunchAsync(acc, per, AddLog); }
+            catch (Exception ex) { Log.Error("LaunchGated", ex); }
+            finally { gate.Release(); UpdateStatusCells(); }
+        }
+
         async Task RunLaunch(List<Account> accs, LaunchSpec spec, bool allowSaved)
         {
             launchCts = new CancellationTokenSource();
@@ -488,7 +500,45 @@ namespace AltHub
             if (spec.PlaceId > 0) AddRecent(spec.PlaceId);
             try
             {
-                for (int i = 0; i < accs.Count; i++)
+                bool fastOk = Store.Settings.FastLaunch && accs.Count > 1 && accs.All(x => x.FpsCap <= 0);
+                int start = 0;
+                if (fastOk)
+                {
+                    // the first account goes alone: it proves that clients can be told apart by their tracker id
+                    Account first = accs[0];
+                    Launcher.BreakerClear(first);
+                    await Launcher.LaunchAsync(first, (allowSaved && Store.Settings.UseSavedPerAccount) ? ApplySaved(first, spec) : spec, AddLog);
+                    UpdateStatusCells();
+                    start = 1;
+                    fastOk = Launcher.TrackerWorks;
+                }
+                if (fastOk)
+                {
+                    // the rest are started a fraction of a second apart and detected together, a few at a time
+                    int stagger = Math.Max(0, Store.Settings.FastLaunchStaggerMs);
+                    System.Threading.SemaphoreSlim gate = new System.Threading.SemaphoreSlim(Math.Max(1, Store.Settings.FastLaunchParallel));
+                    List<Task> running = new List<Task>();
+                    Launcher.ParallelMode = true;
+                    try
+                    {
+                        for (int i = start; i < accs.Count; i++)
+                        {
+                            if (ct.IsCancellationRequested) break;
+                            await gate.WaitAsync(ct);
+                            Account acc = accs[i];
+                            Launcher.BreakerClear(acc);
+                            LaunchSpec per = (allowSaved && Store.Settings.UseSavedPerAccount) ? ApplySaved(acc, spec) : spec;
+                            running.Add(LaunchGated(acc, per, gate));
+                            if (i < accs.Count - 1) await Task.Delay(stagger, ct);
+                        }
+                    }
+                    catch (OperationCanceledException) { }
+                    await Task.WhenAll(running.ToArray());
+                    Launcher.ParallelMode = false;
+                    UpdateStatusCells();
+                }
+                else
+                for (int i = start; i < accs.Count; i++)
                 {
                     if (ct.IsCancellationRequested) break;
                     Account acc = accs[i];

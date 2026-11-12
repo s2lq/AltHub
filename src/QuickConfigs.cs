@@ -55,6 +55,52 @@ namespace AltHub
                     s.MaxAlts = false; s.RamCapMode = "Off"; s.CpuCapMode = "Off"; s.Mem.AutoClean = false; })
         };
 
+        // Ready-made setups in the style people share: one click each, same format as an imported .athcfg.
+        public static readonly List<QuickConfig> Community = new List<QuickConfig>
+        {
+            Make("AFK farm overnight", "Leave it running all night",
+                "Lowest graphics, 10 FPS, about 250 MB per window, anti-AFK every 10 minutes, auto-relaunch watcher with rejoin, the memory cleaner on and logins checked every 3 hours.",
+                delegate(AppSettings s) {
+                    Gfx(s, "Lowest", 0, -1, 0); s.FpsCap = 10; s.Priority = "Idle";
+                    s.MaxAlts = true; s.MaxAltsFps = 5; s.MaxAltsIdle = true; s.MaxAltsTrim = true; s.MaxAltsMinimize = false;
+                    s.RamCapMode = "Auto250"; s.RamCapSkipActive = false; s.CpuCapMode = "Each"; s.CpuCapPercent = 5; s.CpuCapSkipActive = false;
+                    s.AntiAfk = true; s.AntiAfkMin = 10; s.AutoRelaunch = true; s.WatcherSec = 60; s.RejoinSameServer = true;
+                    s.HealthAuto = true; s.HealthHours = 3; s.Mem.AutoClean = true; s.Mem.Threshold = 70; }),
+            Make("Low-end laptop", "Few GB of RAM, weak CPU",
+                "Lowest graphics, 20 FPS, 250 MB per window, at most 3 windows at a time, a short launch pause and no background checks that cost battery.",
+                delegate(AppSettings s) {
+                    Gfx(s, "Lowest", 0, -1, 0); s.FpsCap = 20; s.Priority = "BelowNormal"; s.MaxInstances = 3;
+                    s.MaxAlts = true; s.MaxAltsFps = 10; s.MaxAltsIdle = true; s.MaxAltsTrim = true;
+                    s.RamCapMode = "Auto250"; s.CpuCapMode = "Total"; s.CpuCapPercent = 60;
+                    s.PresenceSec = 60; s.HealthAuto = false; s.Mem.AutoClean = true; s.Mem.Threshold = 70; }),
+            Make("Alt army (20+)", "As many windows as the PC can hold",
+                "Lowest graphics, 12 FPS, 250 MB and 4 % CPU per window, fast launching, memory cleaner at 80 %. Needs 32 GB of RAM or more for 20 windows.",
+                delegate(AppSettings s) {
+                    Gfx(s, "Lowest", 0, -1, 0); s.FpsCap = 12; s.Priority = "BelowNormal"; s.MaxInstances = 0;
+                    s.MaxAlts = true; s.MaxAltsFps = 6; s.MaxAltsIdle = true; s.MaxAltsTrim = true;
+                    s.RamCapMode = "Auto250"; s.CpuCapMode = "Each"; s.CpuCapPercent = 4;
+                    s.FastLaunch = true; s.FastLaunchParallel = 4; s.Mem.AutoClean = true; s.Mem.Threshold = 80; }),
+            Make("Stream and play", "Smooth main window, quiet alts",
+                "Your main window keeps full quality at 60 FPS, the others run light in the background and are slowed while you are not looking at them.",
+                delegate(AppSettings s) {
+                    Gfx(s, "Light", 0, -1, 0); s.FpsCap = 60; s.Priority = "Normal";
+                    s.MaxAlts = true; s.MaxAltsFps = 20; s.MaxAltsIdle = true; s.MaxAltsTrim = false;
+                    s.RamCapMode = "Fixed500"; s.RamCapSkipActive = true; s.CpuCapMode = "Each"; s.CpuCapPercent = 12; s.CpuCapSkipActive = true;
+                    s.Mem.AutoClean = false; }),
+            Make("Screenshots and showcase", "Looks over everything",
+                "Highest quality, high textures, 4x anti-aliasing, 144 FPS, no limits. Best with one or two windows.",
+                delegate(AppSettings s) {
+                    Gfx(s, "Custom", 21, 3, 4); s.FpsCap = 144; s.Priority = "Normal";
+                    s.MaxAlts = false; s.RamCapMode = "Off"; s.CpuCapMode = "Off"; s.Mem.AutoClean = false; }),
+            Make("Battery saver", "Longest time on battery",
+                "Lowest graphics, 10 FPS, low priority, 3 % CPU per window and the checks run less often.",
+                delegate(AppSettings s) {
+                    Gfx(s, "Lowest", 0, -1, 0); s.FpsCap = 10; s.Priority = "Idle";
+                    s.MaxAlts = true; s.MaxAltsFps = 5; s.MaxAltsIdle = true; s.MaxAltsTrim = true;
+                    s.RamCapMode = "Auto250"; s.CpuCapMode = "Each"; s.CpuCapPercent = 3;
+                    s.PresenceSec = 120; s.WatcherSec = 120; s.HealthAuto = false; s.Mem.AutoClean = true; s.Mem.Threshold = 70; })
+        };
+
         static QuickConfig Make(string name, string tag, string desc, Action<AppSettings> apply)
         {
             QuickConfig q = new QuickConfig();
@@ -80,7 +126,7 @@ namespace AltHub
         {
             "Gfx", "FpsCap", "Priority", "MaxAlts", "MaxAltsFps", "MaxAltsIdle", "MaxAltsTrim", "MaxAltsMinimize", "Mem",
             "CpuCapMode", "CpuCapPercent", "CpuCapSkipActive", "RamCapMode", "RamCapSkipActive",
-            "LaunchMethod", "LaunchDelaySec", "AutoCloseLast", "MaxInstances", "RefreshCookieOnLaunch",
+            "LaunchMethod", "LaunchDelaySec", "FastLaunch", "FastLaunchStaggerMs", "FastLaunchParallel", "AutoCloseLast", "MaxInstances", "RefreshCookieOnLaunch",
             "ShowPresence", "PresenceSec", "AutoRelaunch", "WatcherSec", "WatcherUsePresence", "RejoinSameServer",
             "CrashBreaker", "CrashBreakerMax", "CrashBreakerWindowMin", "CrashBreakerCooldownMin",
             "AntiAfk", "AntiAfkMin", "AntiAfkAction", "Layout", "HealthAuto", "HealthHours",

@@ -171,6 +171,9 @@ namespace AltHub
         public string LaunchMethod = "Protocol";    // Protocol (roblox-player: link, like Roblox Account Manager) | Direct
         public bool LaunchDefaultsV2 = false;       // set once the launch method was switched to the RAM-style default
         public int LaunchDelaySec = 8;
+        public bool FastLaunch = true;              // start several accounts at once, a fraction of a second apart
+        public int FastLaunchStaggerMs = 350;
+        public int FastLaunchParallel = 5;          // how many clients may be starting at the same moment
         public bool AutoCloseLast = true;
         public int MaxInstances = 0;
         public bool RefreshCookieOnLaunch = false;

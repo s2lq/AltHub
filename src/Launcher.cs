@@ -217,6 +217,49 @@ namespace AltHub
         // Finds the Roblox client that carries this account's stable browser-tracker id on its command line.
         // This identifies the right process even when Roblox reused a background process (no new PID appears).
         // Returns 0 if command lines can't be read (e.g. the process is protected) - the caller then falls back.
+        // ---- shared, cached look at the Roblox command lines (one WMI query serves every account that is still starting) ----
+        public static bool TrackerWorks;           // set once a client was found by its tracker id: then parallel launching is safe
+        public static bool ParallelMode;           // several launches in flight: never guess a process, only match by tracker id
+        static Task<List<KeyValuePair<int, string>>> snapTask;
+        static DateTime snapAt = DateTime.MinValue;
+
+        static Task<List<KeyValuePair<int, string>>> CmdlineSnapshot()
+        {
+            if (snapTask != null && (DateTime.UtcNow - snapAt).TotalMilliseconds < 150) return snapTask;
+            snapAt = DateTime.UtcNow;
+            snapTask = Task.Run(delegate
+            {
+                List<KeyValuePair<int, string>> list = new List<KeyValuePair<int, string>>();
+                try
+                {
+                    using (System.Management.ManagementObjectSearcher searcher = new System.Management.ManagementObjectSearcher(
+                        "SELECT ProcessId, CommandLine FROM Win32_Process WHERE Name = 'RobloxPlayerBeta.exe'"))
+                    using (System.Management.ManagementObjectCollection results = searcher.Get())
+                        foreach (System.Management.ManagementObject mo in results)
+                        {
+                            try
+                            {
+                                object cl = mo["CommandLine"], pid = mo["ProcessId"];
+                                if (cl != null && pid != null) list.Add(new KeyValuePair<int, string>(Convert.ToInt32(pid), cl.ToString()));
+                            }
+                            finally { mo.Dispose(); }
+                        }
+                }
+                catch (Exception) { }
+                return list;
+            });
+            return snapTask;
+        }
+
+        public static async Task<int> FindByTrackerAsync(long tracker)
+        {
+            if (tracker <= 0) return 0;
+            string needle = tracker.ToString();
+            foreach (KeyValuePair<int, string> kv in await CmdlineSnapshot())
+                if (kv.Value.IndexOf(needle, StringComparison.Ordinal) >= 0) return kv.Key;
+            return 0;
+        }
+
         public static int FindByTracker(long tracker)
         {
             if (tracker <= 0) return 0;
@@ -496,7 +539,7 @@ namespace AltHub
             {
                 foreach (WinInfo w in WindowLayout.FindRobloxWindows())
                     if (w.Pid == pid && w.HasWindow) return;
-                await Task.Delay(700);
+                await Task.Delay(250);
             }
         }
 
@@ -675,19 +718,21 @@ namespace AltHub
                 // isn't blocked; and the shared Instances list is only touched on the UI thread).
                 int pid = 0;
                 bool already = false;
-                for (int i = 0; i < 120 && pid == 0; i++)
+                for (int i = 0; i < 400 && pid == 0; i++)
                 {
-                    await Task.Delay(500);
+                    await Task.Delay(i < 4 ? 250 : 150);
 
                     // Best signal: the process whose command line carries this account's tracker id. This finds
                     // the right client whether Roblox spawned a new process or REUSED a background one.
-                    int tp = FindByTracker(a.TrackerId);
+                    int tp = await FindByTrackerAsync(a.TrackerId);
                     if (tp != 0)
                     {
+                        TrackerWorks = true;
                         Instance ex = FindInstance(tp);
                         if (ex == null) { pid = tp; break; }
                         if (ex.Account == a) { pid = tp; already = true; break; }
                     }
+                    if (ParallelMode) continue;       // several clients are starting: only the tracker id tells them apart
                     // Fallback 1: a brand-new process.
                     foreach (int p in RobloxPids())
                         if (!before.Contains(p) && FindInstance(p) == null) { pid = p; break; }
