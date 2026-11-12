@@ -114,7 +114,7 @@ namespace AltHub
             { "Account status", new string[] { "Estado de la cuenta", "Estado da conta", "État du compte", "Konto-Status", "Stato account", "Hesap durumu", "Статус аккаунта", "Status konta", "Status akun", "Accountstatus" } },
             { "Automation", new string[] { "Automatización", "Automação", "Automatisation", "Automatisierung", "Automazione", "Otomasyon", "Автоматизация", "Automatyzacja", "Otomatisasi", "Automatisering" } },
             { "Security", new string[] { "Seguridad", "Segurança", "Sécurité", "Sicherheit", "Sicurezza", "Güvenlik", "Безопасность", "Bezpieczeństwo", "Keamanan", "Beveiliging" } },
-            { "Appearance & startup", new string[] { "Apariencia e inicio", "Aparência e inicialização", "Apparence et démarrage", "Aussehen & Start", "Aspetto e avvio", "Görünüm ve başlangıç", "Внешний вид и запуск", "Wygląd i start", "Tampilan & startup", "Uiterlijk & opstarten" } },
+            { "Appearance && startup", new string[] { "Apariencia e inicio", "Aparência e inicialização", "Apparence et démarrage", "Aussehen && Start", "Aspetto e avvio", "Görünüm ve başlangıç", "Внешний вид и запуск", "Wygląd i start", "Tampilan && startup", "Uiterlijk && opstarten" } },
             { "Updates", new string[] { "Actualizaciones", "Atualizações", "Mises à jour", "Updates", "Aggiornamenti", "Güncellemeler", "Обновления", "Aktualizacje", "Pembaruan", "Updates" } },
             { "Advanced", new string[] { "Avanzado", "Avançado", "Avancé", "Erweitert", "Avanzate", "Gelişmiş", "Дополнительно", "Zaawansowane", "Lanjutan", "Geavanceerd" } },
             { "Credits", new string[] { "Créditos", "Créditos", "Crédits", "Danksagung", "Crediti", "Katkıda bulunanlar", "Авторы", "Autorzy", "Kredit", "Credits" } },

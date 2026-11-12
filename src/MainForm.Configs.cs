@@ -23,7 +23,7 @@ namespace AltHub
                 Label tag = Ui.Fld(qc.Tagline, 400);
                 tag.ForeColor = Theme.Muted;
                 tag.Tag = "muted";
-                p.Opt(qc.Description, qc.Description, b, tag);
+                p.Opt(ShortDesc(qc.Description), qc.Description, b, tag);
             }
             p.Section("Community configs");
             p.Note("Setups in the style people share: pick one and it is applied just like a quick config. You can still export your own as a .athcfg file.");
@@ -34,10 +34,18 @@ namespace AltHub
                 Label tag = Ui.Fld(qc.Tagline, 400);
                 tag.ForeColor = Theme.Muted;
                 tag.Tag = "muted";
-                p.Opt(qc.Description, qc.Description, b, tag);
+                p.Opt(ShortDesc(qc.Description), qc.Description, b, tag);
             }
             lblQuickNow = Ui.Lbl("", "muted");
             p.Row(lblQuickNow);
+        }
+
+        // the line under a config button is one line long: cut at a comma, the full text stays in the (i)
+        static string ShortDesc(string d)
+        {
+            if (d.Length <= 100) return d;
+            int cut = d.LastIndexOf(',', 98);
+            return (cut > 30 ? d.Substring(0, cut) : d.Substring(0, 98)) + ".";
         }
 
         void ApplyQuickConfig(QuickConfig q)
@@ -80,6 +88,9 @@ namespace AltHub
                 Ui.Btn("Export my config...", 170, delegate { ExportConfig(); }, ""),
                 Ui.Btn("Import a config...", 170, delegate { ImportConfig(); }, ""));
             lblPortable = Ui.Lbl("", "muted");
+            lblPortable.AutoSize = false;
+            lblPortable.AutoEllipsis = true;
+            lblPortable.Size = new Size(600, 22);
             Button bp = Ui.Btn(Store.IsPortable ? "Switch back to normal mode" : "Switch to portable mode", 240, delegate { TogglePortable(); }, "");
             btnPortable = (RoundButton)bp;
             p.Opt("Portable mode keeps all your data next to AltHub.exe.",
@@ -96,6 +107,7 @@ namespace AltHub
         {
             if (lblPortable == null) return;
             lblPortable.Text = (Store.IsPortable ? "Portable mode is ON - data folder: " : "Normal mode - data folder: ") + Store.Dir;
+            Ui.Tips.SetToolTip(lblPortable, Store.Dir);
         }
 
         void ExportConfig()

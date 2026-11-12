@@ -174,7 +174,7 @@ namespace AltHub
             BuildCompactSection(p);
             BuildShareSection(p);
 
-            p.Section("Appearance & startup");
+            p.Section("Appearance && startup");
             cbTheme = Ui.Cmb(190, "Dark");
             p.Opt("Pick a theme: dark, light, the same as Windows, or a preset.",
                 "Switches the whole window immediately. 'Follow Windows' changes with the Windows app mode setting (Settings > Personalization > Colors). The presets (Midnight, AMOLED, Slate, Ocean, Forest, Rose, Sunset, Mint, Sand) change every colour; the accent colour below still overrides the theme's own accent.",

@@ -25,7 +25,7 @@ namespace AltHub
             bool c = Store.Settings.CompactUi;
             try
             {
-                root.RowStyles[0].Height = c ? 50 : Math.Max(68, statRun.NeededHeight() + 14);
+                root.RowStyles[0].Height = c ? 58 : Math.Max(68, statRun.NeededHeight() + 14);
                 if (topSub != null) topSub.Visible = !c;
                 statCpu.Visible = !c;
                 statRam.Visible = !c;
@@ -50,11 +50,11 @@ namespace AltHub
         void BuildCompactSection(PageBuilder p)
         {
             p.Section("Window size");
-            chkCompact = Ui.Chk("Compact mode: smaller bars and margins, fits small screens", Store.Settings.CompactUi, null);
+            chkCompact = Ui.Chk("Compact mode (smaller bars and margins)", Store.Settings.CompactUi, null);
             chkCompact.CheckedChanged += delegate { if (chkCompact.Checked != Store.Settings.CompactUi) SetCompact(chkCompact.Checked); };
             p.Opt("Shortcut: Ctrl+Shift+K", "Shrinks the top bar and the spacing so more fits on a small screen, and lets the window be made much smaller.",
                 chkCompact,
-                Ui.Btn("Open the mini window", 170, delegate { ToggleMini(); }, ""));
+                Ui.Btn("Open the mini window", 160, delegate { ToggleMini(); }, ""));
         }
 
         void ToggleMini()
